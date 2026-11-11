@@ -1,0 +1,62 @@
+"""IAM-signed Bedrock JSON transport. SDK retries are disabled.
+
+The shared stage gateway owns transient retries. Credentials never enter prompts,
+logs, browser responses, or global bearer-token environment variables.
+"""
+import json
+from pathlib import Path
+import boto3
+import httpx
+from botocore.config import Config
+from botocore.exceptions import (ClientError, ReadTimeoutError, ConnectTimeoutError,
+                                  EndpointConnectionError)
+
+
+def generate_json(system, prompt, schema, read_timeout):
+    settings=json.loads((Path(__file__).resolve().parents[2]/'.secrets/aws_iam.json').read_text())
+    key=settings.get('aws_access_key_id','').strip()
+    secret=settings.get('aws_secret_access_key','').strip()
+    if not key or not secret:raise ValueError('IAM credentials missing')
+    session=boto3.Session(aws_access_key_id=key,aws_secret_access_key=secret,
+        aws_session_token=settings.get('aws_session_token','').strip() or None,
+        region_name=settings.get('region','us-east-1'))
+    config=Config(connect_timeout=5,read_timeout=read_timeout,retries={'total_max_attempts':1},
+                  auth_scheme_preference='sigv4')
+    client=session.client('bedrock-runtime',config=config)
+    instruction=system+'\nReturn exactly one valid JSON object, with no markdown or commentary.'
+    if schema:
+        instruction+='\nYour response MUST include every required field in this JSON Schema:\n'+json.dumps(schema)
+        properties=schema.get('properties',{})
+        if 'factors' in properties:
+            if 'inputs' in properties or 'assumptions' in properties:
+                instruction+='\nIf target_variable is non-null, include that variable exactly once in factors.'
+            if 'inputs' in properties:
+                instruction+='\nThis is the MAIN calculation stage. Calculate the target using native calculator input names and return numeric results. The target factor is derived, not missing.'
+            else:
+                instruction+='\nThis is factor extraction only for the already-selected registry. Preserve stated values and raw frequencies. Do not calculate, select a model or decide missing-input requirements. An unsolved target is null/missing, not a question to the user.'
+    try:
+        result=client.converse(modelId=settings.get('model_id','').removeprefix('bedrock/'),
+            system=[{'text':instruction}],messages=[{'role':'user','content':[{'text':prompt}]}],
+            inferenceConfig={'maxTokens':4096,'temperature':0})
+    except ClientError as exc:
+        code=exc.response.get('Error',{}).get('Code')
+        status=exc.response.get('ResponseMetadata',{}).get('HTTPStatusCode',500)
+        if code in ('ThrottlingException','TooManyRequestsException'):status=429
+        if code=='ServiceUnavailableException':status=503
+        headers=exc.response.get('ResponseMetadata',{}).get('HTTPHeaders',{})
+        response=httpx.Response(status,headers={'retry-after':headers['retry-after']} if 'retry-after' in headers else {},
+                                request=httpx.Request('POST','https://bedrock-runtime.amazonaws.com'))
+        raise httpx.HTTPStatusError('Bedrock request failed',request=response.request,response=response) from None
+    except ReadTimeoutError:
+        raise httpx.ReadTimeout('Bedrock response timed out') from None
+    except (ConnectTimeoutError,EndpointConnectionError):
+        raise httpx.ConnectError('Bedrock connection failed') from None
+    finally:
+        client.close()
+    if result.get('stopReason')=='max_tokens':raise ValueError('Incomplete model response')
+    text=''.join(c.get('text','') for c in result['output']['message']['content']).strip()
+    if text.startswith('```'):
+        text=text.split('\n',1)[1].rsplit('```',1)[0].strip()
+    data=json.loads(text)
+    if not isinstance(data,dict):raise ValueError('Expected JSON object')
+    return data

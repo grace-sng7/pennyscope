@@ -1,0 +1,22 @@
+.secrets/
+.venv/
+__pycache__/
+*.pyc
+
+.env*
+!.env.example
+node_modules/
+.next/
+
+# Local credentials, generated files, and machine-specific state
+.aws/
+.DS_Store
+*.pem
+*.key
+*.log
+*.tsbuildinfo
+coverage/
+dist/
+build/
+.vercel/
+.ipynb_checkpoints/

@@ -1,0 +1,543 @@
+[
+  {
+    "question": "I earn $900 every two weeks, spend $1,650/month, and want a $90/month gym membership. Can I afford it?",
+    "response": {
+      "assumptions": [
+        {
+          "variable": "income_entries",
+          "value": "[{\"amount\":900,\"frequency\":\"biweekly\"}]",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: I earn $900 every two weeks"
+        },
+        {
+          "variable": "monthly_spending",
+          "value": 1650,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: spend $1,650/month"
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 90,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: want a $90/month gym membership"
+        },
+        {
+          "variable": "affordability_status",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "User wants to know if they can afford a $90/month gym membership.",
+      "confidence_note": "Income and spending information is provided, but the affordability status depends on the calculation of the user's monthly surplus after the proposed gym membership expense.",
+      "model": "budget_cash_flow",
+      "target_variable": "affordability_status",
+      "factors": [
+        {
+          "variable": "income_entries",
+          "value": "[{\"amount\":900,\"frequency\":\"biweekly\"}]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I earn $900 every two weeks",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I earn $900 every two weeks",
+            "variable": null
+          }
+        },
+        {
+          "variable": "monthly_spending",
+          "value": 1650,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: spend $1,650/month",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "spend $1,650/month",
+            "variable": null
+          }
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 90,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: want a $90/month gym membership",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "want a $90/month gym membership",
+            "variable": null
+          }
+        },
+        {
+          "variable": "affordability_status",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null
+        }
+      ],
+      "routing": {
+        "model": "budget_cash_flow"
+      },
+      "selection_state": {
+        "model": "budget_cash_flow",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I earn $900 every two weeks, spend $1,650/month, and want a $90/month gym membership. Can I afford it?"
+          }
+        ],
+        "active_question": "I earn $900 every two weeks, spend $1,650/month, and want a $90/month gym membership. Can I afford it?"
+      }
+    }
+  },
+  {
+    "question": "I have $200 saved and want $1,200 in five months. How much should I save monthly?",
+    "response": {
+      "assumptions": [
+        {
+          "variable": "current_savings",
+          "value": 200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: I have $200 saved"
+        },
+        {
+          "variable": "goal_amount",
+          "value": 1200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: want $1,200"
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 5,
+          "unit": "months",
+          "source": "stated",
+          "source_detail": "question: in five months"
+        },
+        {
+          "variable": "monthly_contribution",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Save $1,200 in 5 months with $200 initial savings",
+      "confidence_note": "User provided initial savings, goal amount, and deadline",
+      "model": "savings_goal",
+      "target_variable": "monthly_contribution",
+      "factors": [
+        {
+          "variable": "current_savings",
+          "value": 200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 saved",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $200 saved",
+            "variable": null
+          }
+        },
+        {
+          "variable": "goal_amount",
+          "value": 1200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: want $1,200",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "want $1,200",
+            "variable": null
+          }
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 5,
+          "unit": "months",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: in five months",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "in five months",
+            "variable": null
+          }
+        },
+        {
+          "variable": "monthly_contribution",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null
+        }
+      ],
+      "routing": {
+        "model": "savings_goal"
+      },
+      "selection_state": {
+        "model": "savings_goal",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $200 saved and want $1,200 in five months. How much should I save monthly?"
+          }
+        ],
+        "active_question": "I have $200 saved and want $1,200 in five months. How much should I save monthly?"
+      }
+    }
+  },
+  {
+    "question": "Split a $120 dinner bill equally among four people.",
+    "response": {
+      "assumptions": [
+        {
+          "variable": "total_bill",
+          "value": 120,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: a $120 dinner bill"
+        },
+        {
+          "variable": "participants",
+          "value": 4,
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: four people"
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: equally"
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Split a $120 dinner bill among four people using equal split method.",
+      "confidence_note": "High confidence in the target variable and factors due to explicit user statement.",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 120,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $120 dinner bill",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "a $120 dinner bill",
+            "variable": null
+          }
+        },
+        {
+          "variable": "participants",
+          "value": 4,
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: four people",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "four people",
+            "variable": null
+          }
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: equally",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "equally",
+            "variable": null
+          }
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "Split a $120 dinner bill equally among four people."
+          }
+        ],
+        "active_question": "Split a $120 dinner bill equally among four people."
+      }
+    }
+  },
+  {
+    "question": "I owe $5,000 at 8% APR and pay $200/month. When will I finish?",
+    "response": {
+      "assumptions": [
+        {
+          "variable": "principal_balance",
+          "value": 5000,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: I owe $5,000"
+        },
+        {
+          "variable": "apr",
+          "value": 8,
+          "unit": "%",
+          "source": "stated",
+          "source_detail": "question: at 8% APR"
+        },
+        {
+          "variable": "monthly_payment",
+          "value": 200,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: pay $200/month"
+        },
+        {
+          "variable": "estimated_payoff_months",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine debt repayment schedule",
+      "confidence_note": "Principal, APR, and monthly payment are known",
+      "model": "debt_repayment",
+      "target_variable": "estimated_payoff_months",
+      "factors": [
+        {
+          "variable": "principal_balance",
+          "value": 5000,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I owe $5,000",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I owe $5,000",
+            "variable": null
+          }
+        },
+        {
+          "variable": "apr",
+          "value": 8,
+          "unit": "%",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: at 8% APR",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "at 8% APR",
+            "variable": null
+          }
+        },
+        {
+          "variable": "monthly_payment",
+          "value": 200,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: pay $200/month",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "pay $200/month",
+            "variable": null
+          }
+        },
+        {
+          "variable": "estimated_payoff_months",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null
+        }
+      ],
+      "routing": {
+        "model": "debt_repayment"
+      },
+      "selection_state": {
+        "model": "debt_repayment",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I owe $5,000 at 8% APR and pay $200/month. When will I finish?"
+          }
+        ],
+        "active_question": "I owe $5,000 at 8% APR and pay $200/month. When will I finish?"
+      }
+    }
+  },
+  {
+    "question": "new intent from budget",
+    "response": {
+      "assumptions": [
+        {
+          "variable": "total_bill",
+          "value": 120,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: split a $120 dinner bill"
+        },
+        {
+          "variable": "participants",
+          "value": 4,
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: among four people"
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: split a $120 dinner bill equally"
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Split a $120 dinner bill among four people using equal allocation.",
+      "confidence_note": "High confidence in the target variable and factors due to explicit user statement.",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 120,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: split a $120 dinner bill",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "split a $120 dinner bill",
+            "variable": null
+          }
+        },
+        {
+          "variable": "participants",
+          "value": 4,
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: among four people",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "among four people",
+            "variable": null
+          }
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: split a $120 dinner bill equally",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "split a $120 dinner bill equally",
+            "variable": null
+          }
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split",
+        "transition": "new"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "New financial question: split a $120 dinner bill equally among four people."
+          }
+        ],
+        "active_question": "New financial question: split a $120 dinner bill equally among four people."
+      }
+    }
+  }
+]

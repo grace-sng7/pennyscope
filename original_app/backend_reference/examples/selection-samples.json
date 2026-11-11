@@ -1,0 +1,134 @@
+[
+  {
+    "example": "budget",
+    "routing": {
+      "model": "budget_cash_flow"
+    },
+    "target_variable": "affordability_status",
+    "factors": [
+      {
+        "variable": "income_entries",
+        "value": "[{\"amount\":900,\"frequency\":\"biweekly\",\"category\":\"fixed\"}]",
+        "unit": null,
+        "role": "known"
+      },
+      {
+        "variable": "monthly_expenses",
+        "value": 1650,
+        "unit": "$/month",
+        "role": "known"
+      },
+      {
+        "variable": "recurring_cost",
+        "value": 90,
+        "unit": "$/month",
+        "role": "known"
+      },
+      {
+        "variable": "affordability_status",
+        "value": null,
+        "unit": null,
+        "role": "missing"
+      }
+    ]
+  },
+  {
+    "example": "savings",
+    "routing": {
+      "model": "savings_goal"
+    },
+    "target_variable": "required_monthly_savings",
+    "factors": [
+      {
+        "variable": "current_savings",
+        "value": 200,
+        "unit": "$",
+        "role": "known"
+      },
+      {
+        "variable": "goal_amount",
+        "value": 1200,
+        "unit": "$",
+        "role": "known"
+      },
+      {
+        "variable": "goal_deadline",
+        "value": 5,
+        "unit": "months",
+        "role": "known"
+      },
+      {
+        "variable": "required_monthly_savings",
+        "value": null,
+        "unit": null,
+        "role": "missing"
+      }
+    ]
+  },
+  {
+    "example": "bills",
+    "routing": {
+      "model": "bill_split"
+    },
+    "target_variable": "amounts_owed",
+    "factors": [
+      {
+        "variable": "total_bill",
+        "value": 120,
+        "unit": "$",
+        "role": "known"
+      },
+      {
+        "variable": "participants",
+        "value": 4,
+        "unit": null,
+        "role": "known"
+      },
+      {
+        "variable": "split_method",
+        "value": "equal",
+        "unit": null,
+        "role": "known"
+      },
+      {
+        "variable": "amounts_owed",
+        "value": null,
+        "unit": null,
+        "role": "missing"
+      }
+    ]
+  },
+  {
+    "example": "debt",
+    "routing": {
+      "model": "debt_repayment"
+    },
+    "target_variable": "estimated_payoff_months",
+    "factors": [
+      {
+        "variable": "principal_balance",
+        "value": 5000,
+        "unit": "$",
+        "role": "known"
+      },
+      {
+        "variable": "apr",
+        "value": 8,
+        "unit": "%",
+        "role": "known"
+      },
+      {
+        "variable": "monthly_payment",
+        "value": 200,
+        "unit": "$/month",
+        "role": "known"
+      },
+      {
+        "variable": "estimated_payoff_months",
+        "value": null,
+        "unit": null,
+        "role": "missing"
+      }
+    ]
+  }
+]
