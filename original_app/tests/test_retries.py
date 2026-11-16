@@ -124,10 +124,11 @@ class RouteRetryChecks(unittest.TestCase):
         from fastapi.testclient import TestClient
         from main import app
         req=request();before=copy.deepcopy(req)
-        with TestClient(app) as client,patch.object(o,'call_json',g.call_json),patch.object(g.httpx,'post',side_effect=[response(200,draft()),response(503),response(503),response(503),response(200,review())]) as post:
+        with TestClient(app) as client,patch.object(o,'call_json',g.call_json),patch('chat_fallback.respond',return_value={'kind':'limitation','text':'The supplied information is retained while the review is unavailable.'}),patch.object(g.httpx,'post',side_effect=[response(200,draft()),response(503),response(503),response(503),response(200,review())]) as post:
             failed=client.post('/calculate',json=req)
-            self.assertEqual(failed.status_code,502)
-            self.assertNotIn('answer',failed.json())
+            self.assertEqual(failed.status_code,200)
+            self.assertEqual(failed.json()['chat_fallback']['kind'],'limitation')
+            self.assertIsNone(failed.json()['answer'])
             result=client.post('/calculate',json=req)
             self.assertEqual(result.status_code,200)
             self.assertEqual(post.call_count,5)

@@ -121,9 +121,10 @@ class SelectionStages(unittest.TestCase):
 
     def test_unresolved_route_never_reaches_downstream(self):
         for route in ('gap','ambiguous','multiple'):
-            with TestClient(app) as client,patch('orchestration.calculate') as downstream:
+            with TestClient(app) as client,patch('orchestration.calculate') as downstream,patch('question_approach.calculate',return_value={'status':'conditional','answer':{'headline':'Scoped answer'}}) as scoped:
                 response=client.post('/calculate',json={'original_question':'Question','assumptions':[],'extraction_meta':{'routing':{'model':route}}})
             self.assertEqual(response.status_code,200);downstream.assert_not_called()
+            self.assertEqual(scoped.call_count,1 if route=='gap' else 0)
 
     def test_target_row_is_materialized_without_an_extra_llm_call(self):
         output=selected('projected_surplus',{'recurring_cost':90})
@@ -170,7 +171,7 @@ class SelectionStages(unittest.TestCase):
 
     def test_generic_totals_cannot_be_fixed_or_variable(self):
         for name in ('fixed_costs','variable_costs','fixed_income','variable_income'):
-            with patch('gemini_gateway.call_json',side_effect=[{'model':'budget_cash_flow'},selected('monthly_surplus',{name:1650})]),self.assertRaises(HTTPException):
+            with patch('gemini_gateway.call_json',side_effect=[{'model':'budget_cash_flow'},selected('monthly_surplus',{name:1650}),selected('monthly_surplus',{name:1650})]),self.assertRaises(HTTPException):
                 e.extract('I earn $1650/month and spend $1650/month','2026-11-10','UTC')
         with patch('gemini_gateway.call_json',side_effect=[{'model':'budget_cash_flow'},selected('monthly_surplus',{'fixed_costs':1650})]):
             result=e.extract('My fixed expenses are $1650/month','2026-11-10','UTC')
@@ -185,7 +186,7 @@ class SelectionStages(unittest.TestCase):
         ]:
             for source in ('stated','inferred'):
                 output=selected(target,values);output['factors'][0]['source']=source
-                with patch('gemini_gateway.call_json',side_effect=[{'model':model},output]),self.assertRaises(HTTPException):
+                with patch('gemini_gateway.call_json',side_effect=[{'model':model},copy.deepcopy(output),copy.deepcopy(output)]),self.assertRaises(HTTPException):
                     e.extract(question,'2026-11-10','UTC')
 
     def test_new_intent_routes_and_clears_old_factors_even_same_family(self):

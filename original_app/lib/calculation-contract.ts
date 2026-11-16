@@ -1,4 +1,5 @@
 import { validateModelContext, type ModelContext, type FactorRole } from './model-factors';
+import type { PlainChat } from './plain-chat';
 import { parseEdit } from './field-values';
 import type { AssumptionValue, ExtractionResponse } from './extraction';
 
@@ -26,7 +27,18 @@ export interface CalculationRequest {
   parameters: Record<string, string>;
   answerFactBindings: Record<string, number>;
 }
+export interface Verification {
+  status: 'matched' | 'mismatch' | 'unverified' | 'input_sufficient';
+  context?: 'answer' | 'question';
+  target_variable: string;
+  main_value: unknown;
+  python_value?: unknown;
+  unit?: string;
+  message?: string;
+}
 interface ResponseContent extends ModelContext {
+  chat_fallback?: PlainChat;
+  verification?: Verification;
   information: (EditableField & { source: string; sourceDetail: string; confirmable: boolean })[];
   questions: Question[];
   assumptions: SystemAssumption[];
@@ -51,7 +63,9 @@ export function validateCalculation(value: unknown, extraction?: ExtractionRespo
   if (!value || typeof value !== 'object' || Array.isArray(value)) return fail();
   const r = value as CalculationResponse;
   validateModelContext(r);
+  if (r.verification !== undefined && (!r.verification || !['matched', 'mismatch', 'unverified', 'input_sufficient'].includes(r.verification.status) || typeof r.verification.target_variable !== 'string' || !r.verification.target_variable.trim() || r.target_variable && r.verification.target_variable !== r.target_variable)) return fail();
   if (!['ready', 'conditional', 'needs_input', 'unsupported', 'stale'].includes(r.status)) return fail();
+  if (r.verification?.context !== undefined && !['answer', 'question'].includes(r.verification.context)) return fail();
   for (const key of ['information', 'questions', 'assumptions', 'parameters', 'metrics', 'explanations', 'limitations', 'nextActions'] as const) if (!Array.isArray(r[key])) return fail();
   for (const items of [r.information, r.questions, r.assumptions, r.parameters]) {
     if (items.some(item => !item || typeof item.id !== 'string' || !item.id.trim()) || new Set(items.map(item => item.id)).size !== items.length) return fail();

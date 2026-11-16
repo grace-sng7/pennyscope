@@ -3,13 +3,15 @@
 // but each stage is a chat turn instead of a card. Services are the same ones the dashboard uses.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CalculationRequest, CalculationResponse, CalculationService } from '../lib/calculation-contract';
+import { parsePlainChat, type PlainChat } from '../lib/plain-chat';
+import { PresentationBoundary, PlainResult } from './presentation-boundary';
 import { extractionFactors } from '../lib/model-factors';
 import type { ExtractionResponse, ExtractionService } from '../lib/extraction';
-import { liveCalculationService, liveExtractionService } from '../lib/http-services';
+import { liveCalculationService, liveExtractionService, recoverPlainChat } from '../lib/http-services';
 import { calculationService as mockCalculation, extractionService as mockExtraction } from '../lib/services';
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
 import { label } from '../lib/workspace-model';
-import { AnswerCard, QuickReplies, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
+import { AnswerCard, QuestionText, QuickReplies, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
 import s from '../app/chat/chat.module.css';
 
 const live = process.env.NEXT_PUBLIC_BACKEND_MODE === 'live';
@@ -32,7 +34,7 @@ const SUGGESTIONS = [
 
 type Msg =
   | { id: number; role: 'user'; text: string }
-  | { id: number; role: 'bot'; kind: 'text'; text: string; note?: string; replies?: string[] }
+  | { id: number; role: 'bot'; kind: 'text'; text: string; verification?: CalculationResponse['verification']; note?: string; replies?: string[] }
   | { id: number; role: 'bot'; kind: 'understood'; extraction: ExtractionResponse }
   | { id: number; role: 'bot'; kind: 'answer'; response: CalculationResponse }
   | { id: number; role: 'bot'; kind: 'typing' };
@@ -67,6 +69,9 @@ export default function ChatApp() {
   const idRef = useRef(0);
   const exRef = useRef<ExtractionResponse | null>(null);
   const originalRef = useRef('');
+  const recoveryUsed = useRef(false);
+  const latestMessage = useRef('');
+  const plainQuestion = useRef<string | null>(null);
   const paramsRef = useRef<Record<string, string>>({});
   const asked = useRef<Record<string, number>>({});
   const skipped = useRef<Set<string>>(new Set());
@@ -83,9 +88,30 @@ export default function ChatApp() {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const push = (m: NewMsg) => setMsgs(list => [...list.filter(x => !('kind' in x && x.kind === 'typing')), { ...m, id: ++idRef.current } as Msg]);
-  const bot = (textValue: string, extra: { note?: string; replies?: string[] } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
+  const bot = (textValue: string, extra: { note?: string; replies?: string[]; verification?: CalculationResponse['verification'] } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
   const typing = () => push({ role: 'bot', kind: 'typing' });
   const setExtraction = (value: ExtractionResponse) => { exRef.current = value; setEx(value); };
+
+  const showPlain = (reply: PlainChat) => {
+    current.current = null;
+    plainQuestion.current = reply.kind === 'question' ? reply.text : null;
+    setStage(reply.kind === 'question' ? 1 : 3);
+    bot(reply.text, { verification: reply.verification });
+  };
+  const consumePlainExtraction = (result: ExtractionResponse) => {
+    const reply = parsePlainChat(result.chat_fallback);
+    if (!reply) return false;
+    const before = exRef.current;
+    const facts = new Map((before?.assumptions ?? []).map(a => [a.variable, a]));
+    for (const a of result.assumptions) if (a.value !== null) facts.set(a.variable, a);
+    if (!before || result.assumptions.some(a => a.value !== null && before.assumptions.find(old => old.variable === a.variable)?.value !== a.value)) {
+      const sheet = { ...result, assumptions: [...facts.values()] };
+      delete sheet.chat_fallback;
+      setExtraction(sheet);
+    }
+    showPlain(reply);
+    return true;
+  };
 
   // Next clarification worth asking: skip anything already stated, skipped by the user, or asked twice.
   const nextQuestion = (value: ExtractionResponse) => {
@@ -101,17 +127,19 @@ export default function ChatApp() {
     }
     return null;
   };
-  const ask = (targets: string[], question: string, why?: string, required = false) => {
+  const ask = (targets: string[], question: string, why?: string, required = false, verification?: CalculationResponse['verification']) => {
     for (const t of targets) asked.current[t] = (asked.current[t] ?? 0) + 1;
     current.current = { targets, question, required }; estimateFor.current = null;
     setStage(1);
-    bot(question, { note: why, replies: [SKIP] });
+    bot(question, { note: why, replies: [SKIP], verification });
   };
 
   async function calculate(value: ExtractionResponse) {
     setStage(2); typing();
     const run = async () => {
       const response = await calculator.calculate(request(originalRef.current, value, paramsRef.current));
+      if (response.factors?.length) setReviewedMath({ snapshot: value, response });
+      if (response.chat_fallback) { showPlain(response.chat_fallback); return; }
       if (response.status === 'ready' || response.status === 'conditional') {
         setReviewedMath({ snapshot: value, response });
         current.current = null; setStage(3); push({ role: 'bot', kind: 'answer', response });
@@ -121,10 +149,7 @@ export default function ChatApp() {
       if (response.status === 'needs_input') {
         const askable = response.questions.filter(q => q.required).map(q => ({ q, target: q.binding.kind === 'fact' ? value.assumptions[q.binding.index]?.variable ?? q.id : q.binding.key }))
           .filter(x => !skipped.current.has(x.target) && (asked.current[x.target] ?? 0) < 2);
-        if (askable.length && modeRef.current === 'quick') {
-          ask(askable.map(x => x.target), `To give you a number I just need ${askable.length > 1 ? 'a few things' : 'one thing'} (rough guesses are fine, or say “not sure” and I’ll estimate):\n${askable.map(x => `• ${x.q.label}`).join('\n')}`, undefined, true); return;
-        }
-        if (askable.length) { ask([askable[0].target], askable[0].q.label, askable[0].q.help, true); return; }
+        if (askable.length) { ask([askable[0].target], askable[0].q.label, askable[0].q.help, true, response.verification); return; }
         // Stuck on required values the user couldn't give: offer a clearly labelled rough estimate (once per item).
         const stuck = response.questions.filter(q => q.required).map(q => q.binding.kind === 'fact' ? value.assumptions[q.binding.index]?.variable ?? q.id : q.binding.key).filter(t => !estimated.current.has(t));
         if (stuck.length) {
@@ -139,10 +164,18 @@ export default function ChatApp() {
       current.current = null;
       bot(response.message ?? 'I can’t calculate this kind of question yet, but everything you told me is saved on the working sheet.');
     };
-    retry.current = async () => { setBusy(true); try { await run(); } catch { failed(); } finally { setBusy(false); } };
-    try { await run(); } catch { failed(); }
+    retry.current = async () => { setBusy(true); try { await run(); } catch { await failed(); } finally { setBusy(false); } };
+    try { await run(); } catch { await failed(); }
   }
-  const failed = () => bot('Something went wrong on my side. Your details are saved.', { replies: [RETRY] });
+  const failed = async () => {
+    if (recoveryUsed.current) {
+      bot('I kept your confirmed information, but could not complete the requested result in this attempt.');
+      return;
+    }
+    recoveryUsed.current = true;
+    const reply = await recoverPlainChat(originalRef.current || latestMessage.current, exRef.current?.assumptions ?? [], latestMessage.current !== originalRef.current ? latestMessage.current : undefined);
+    showPlain(reply);
+  };
 
   async function proceed(value: ExtractionResponse) {
     const q = modeRef.current === 'quick' ? null : nextQuestion(value);
@@ -152,6 +185,7 @@ export default function ChatApp() {
   async function send(raw: string) {
     const message = raw.trim();
     if (!message || busy) return;
+    recoveryUsed.current = false; latestMessage.current = message;
     setText(''); push({ role: 'user', text: message });
     if (message === DEEPER && exRef.current) { setMode('detailed'); setBusy(true); try { await proceed(exRef.current); } finally { setBusy(false); } return; }
     if (message === RETRY && retry.current) { setBusy(true); typing(); try { await retry.current(); } finally { setBusy(false); } return; }
@@ -165,12 +199,13 @@ export default function ChatApp() {
         const attempt = async () => {
           const next = await extraction.correct({ ...context(), user_message: originalRef.current, previous_extraction: before,
             user_correction: `I don't know ${names.join(', ')}. Please use a typical rough estimate for each (a middle-of-the-road figure for this kind of goal), label it inferred, and say in source_detail that it is a rough estimate.` });
+          if (consumePlainExtraction(next)) return;
           const diff = changes(before, next);
           setExtraction(next);
           bot(diff.length ? `No problem. I used rough estimates: ${diff.join(' · ')}. Change any of them if you know better.` : 'I couldn’t come up with a reasonable estimate for that one.');
           await proceed(next);
         };
-        retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { failed(); } finally { setBusy(false); } };
+        retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { await failed(); } finally { setBusy(false); } };
         await attempt(); return;
       }
       // "Not sure" on an optional question just skips it, with no model call.
@@ -182,10 +217,11 @@ export default function ChatApp() {
         originalRef.current = message;
         const attempt = async () => {
           const result = await extraction.extract({ ...context(), user_message: message });
+          if (consumePlainExtraction(result)) return;
           setExtraction(result); setStage(0); push({ role: 'bot', kind: 'understood', extraction: result });
           await proceed(result);
         };
-        retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { failed(); } finally { setBusy(false); } };
+        retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { await failed(); } finally { setBusy(false); } };
         await attempt(); return;
       }
       const q = current.current;
@@ -199,16 +235,20 @@ export default function ChatApp() {
         const target = q && q.targets.length === 1 ? before.assumptions.find(a => a.variable === q.targets[0]) : undefined;
         const local = target ? parseSimpleAnswer(message, target.unit) : null;
         const next = target && local !== null ? applyLocalAnswer(before, target.variable, local, message)
-          : await extraction.correct({ ...context(), user_message: originalRef.current, previous_extraction: before, user_correction: q ? `Answering "${q.question}": ${message}` : message });
+          : await extraction.correct({ ...context(), user_message: originalRef.current, previous_extraction: before, user_correction: q ? `Answering "${q.question}": ${message}` : plainQuestion.current ? `Answering "${plainQuestion.current}": ${message}` : message });
+        if (consumePlainExtraction(next)) return;
+        plainQuestion.current = null;
         const diff = changes(before, next);
         setExtraction(next); current.current = null;
-        if (!diff.length && !q) { bot('Thanks, I’ve noted that. Nothing I use in the numbers changed.'); return; }
+        // A scoped approach has no registered extraction fields to diff, but
+        // its conversation still contains meaningful corrections to calculate.
+        if (!diff.length && !q && next.model) { bot('Thanks, I’ve noted that. Nothing I use in the numbers changed.'); return; }
         bot(diff.length ? `Got it. ${diff.join(' · ')}` : 'Thanks, I’ve noted that.');
         await proceed(next);
       };
-      retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { failed(); } finally { setBusy(false); } };
+      retry.current = async () => { setBusy(true); typing(); try { await attempt(); } catch { await failed(); } finally { setBusy(false); } };
       await attempt();
-    } catch { failed(); } finally { setBusy(false); }
+    } catch { await failed(); } finally { setBusy(false); }
   }
 
   // What-if: change a parameter, recalculate quietly, update the latest answer in place.
@@ -229,7 +269,7 @@ export default function ChatApp() {
 
   const reset = () => {
     if (timer.current) clearTimeout(timer.current);
-    calcSeq.current++; idRef.current = 0; estimateFor.current = null; estimated.current = new Set(); exRef.current = null; originalRef.current = ''; paramsRef.current = {}; asked.current = {}; skipped.current = new Set(); current.current = null; retry.current = null;
+    calcSeq.current++; idRef.current = 0; estimateFor.current = null; estimated.current = new Set(); exRef.current = null; originalRef.current = ''; plainQuestion.current = null; recoveryUsed.current = false; paramsRef.current = {}; asked.current = {}; skipped.current = new Set(); current.current = null; retry.current = null;
     setMsgs([]); setEx(null); setReviewedMath(null); setParams({}); setStage(0); setText(''); setBusy(false);
   };
   const pick = (value: string) => { setText(value); input.current?.focus(); };
@@ -256,10 +296,10 @@ export default function ChatApp() {
           ? <div key={m.id} className={`${s.row} ${s.user}`}><div className={s.bubbleUser}>{m.text}</div></div>
           : <div key={m.id} className={s.row}><span className={s.avatar} aria-hidden="true">☀</span><div className={s.bubble}>
             {m.kind === 'typing' && <Typing />}
-            {m.kind === 'text' && <><p className={s.bubbleText}>{m.text}</p>{m.note && <p className={s.note}>{m.note}</p>}
+            {m.kind === 'text' && <><QuestionText text={m.text} verification={m.verification} />{m.note && <p className={s.note}>{m.note}</p>}
               {m.replies && m.id === lastId && <QuickReplies replies={m.replies} disabled={busy} onPick={send} />}</>}
             {m.kind === 'understood' && <Understood extraction={m.extraction} onPick={pick} />}
-            {m.kind === 'answer' && <AnswerCard response={m.response} interactive={m === lastAnswer} params={params} onParam={onParam} />}
+            {m.kind === 'answer' && <PresentationBoundary resetKey={m.response} fallback={<PlainResult response={m.response} />}><AnswerCard response={m.response} interactive={m === lastAnswer} params={params} onParam={onParam} /></PresentationBoundary>}
           </div></div>)}
         <div ref={bottom} />
       </main>

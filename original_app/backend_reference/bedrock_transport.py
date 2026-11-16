@@ -13,6 +13,14 @@ from botocore.exceptions import (ClientError, ReadTimeoutError, ConnectTimeoutEr
 
 
 def generate_json(system, prompt, schema, read_timeout):
+    return _generate(system,prompt,schema,read_timeout,json_output=True)
+
+
+def generate_text(system,prompt,read_timeout):
+    return _generate(system,prompt,None,read_timeout,json_output=False)
+
+
+def _generate(system, prompt, schema, read_timeout, *, json_output):
     settings=json.loads((Path(__file__).resolve().parents[2]/'.secrets/aws_iam.json').read_text())
     key=settings.get('aws_access_key_id','').strip()
     secret=settings.get('aws_secret_access_key','').strip()
@@ -23,15 +31,15 @@ def generate_json(system, prompt, schema, read_timeout):
     config=Config(connect_timeout=5,read_timeout=read_timeout,retries={'total_max_attempts':1},
                   auth_scheme_preference='sigv4')
     client=session.client('bedrock-runtime',config=config)
-    instruction=system+'\nReturn exactly one valid JSON object, with no markdown or commentary.'
+    instruction=system+('\nReturn exactly one valid JSON object, with no markdown or commentary.' if json_output else '\nRespond in plain language, not JSON.')
     if schema:
         instruction+='\nYour response MUST include every required field in this JSON Schema:\n'+json.dumps(schema)
         properties=schema.get('properties',{})
         if 'factors' in properties:
-            if 'inputs' in properties or 'assumptions' in properties:
+            if 'inputs' in properties or 'assumptions' in properties or 'calculation' in properties:
                 instruction+='\nIf target_variable is non-null, include that variable exactly once in factors.'
-            if 'inputs' in properties:
-                instruction+='\nThis is the MAIN calculation stage. Calculate the target using native calculator input names and return numeric results. The target factor is derived, not missing.'
+            if 'inputs' in properties or 'calculation' in properties:
+                instruction+='\nThis is the MAIN calculation stage. Perform the primary arithmetic and return numeric results. The target factor is derived, not missing.'
             else:
                 instruction+='\nThis is factor extraction only for the already-selected registry. Preserve stated values and raw frequencies. Do not calculate, select a model or decide missing-input requirements. An unsolved target is null/missing, not a question to the user.'
     try:
@@ -55,6 +63,7 @@ def generate_json(system, prompt, schema, read_timeout):
         client.close()
     if result.get('stopReason')=='max_tokens':raise ValueError('Incomplete model response')
     text=''.join(c.get('text','') for c in result['output']['message']['content']).strip()
+    if not json_output:return text
     if text.startswith('```'):
         text=text.split('\n',1)[1].rsplit('```',1)[0].strip()
     data=json.loads(text)

@@ -1,0 +1,443 @@
+[
+  {
+    "case": "late_paycheck",
+    "prompt": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?",
+    "extraction": {
+      "assumptions": [],
+      "clarification_questions": [],
+      "goal_summary": "I\u2019ll work through this question using the information you provided.",
+      "confidence_note": "No model-specific factor extraction has run.",
+      "model": null,
+      "target_variable": null,
+      "factors": [],
+      "routing": {
+        "model": "gap"
+      },
+      "selection_state": {
+        "model": null,
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?"
+          }
+        ]
+      }
+    },
+    "result": {
+      "chat_fallback": null,
+      "verification": {
+        "status": "unverified",
+        "context": "answer",
+        "target_variable": "extra_cash_needed",
+        "main_value": 80,
+        "python_value": null,
+        "unit": "$",
+        "message": "The independent check could not verify this answer. Main\u2019s answer is shown."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [
+        {
+          "reason": "A question-scoped Main approach is used; no registered Python verifier covers it."
+        }
+      ],
+      "model": null,
+      "target_variable": "extra_cash_needed",
+      "factors": [
+        {
+          "variable": "bill_amount",
+          "value": 300,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated a $300 bill due on the 4th Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        },
+        {
+          "variable": "cash_available_before_bill",
+          "value": 220,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated $220 in checking Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        },
+        {
+          "variable": "extra_cash_needed",
+          "value": 80,
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by subtracting available cash from the bill amount",
+          "relevant": true
+        },
+        {
+          "variable": "bill_due_date",
+          "value": "the 4th",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated the bill is due on the 4th Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        },
+        {
+          "variable": "paycheck_date",
+          "value": "the 6th",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated a $150 paycheck on the 6th Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "You need $80 before the bill is due.",
+        "detail": null
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Current question approach",
+          "text": "Subtract available cash from the bill amount"
+        },
+        {
+          "label": "Main calculation",
+          "text": "Extra cash needed = max(0, bill amount - cash available before the bill) = max(0, $300 - $220) = $80"
+        }
+      ],
+      "assumptions": [],
+      "limitations": []
+    }
+  },
+  {
+    "case": "paycheck_moved_to_3rd",
+    "prompt": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?",
+    "extraction": {
+      "assumptions": [],
+      "clarification_questions": [],
+      "goal_summary": "I\u2019ll work through this question using the information you provided.",
+      "confidence_note": "No model-specific factor extraction has run.",
+      "model": null,
+      "target_variable": null,
+      "factors": [],
+      "routing": {
+        "model": "gap"
+      },
+      "selection_state": {
+        "model": null,
+        "revision": 1,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?"
+          },
+          {
+            "role": "user",
+            "content": "The paycheck will arrive on the 3rd instead of the 6th."
+          }
+        ]
+      }
+    },
+    "result": {
+      "chat_fallback": null,
+      "verification": {
+        "status": "unverified",
+        "context": "answer",
+        "target_variable": "extra_cash_needed",
+        "main_value": 0,
+        "python_value": null,
+        "unit": "$",
+        "message": "The independent check could not verify this answer. Main\u2019s answer is shown."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [
+        {
+          "reason": "A question-scoped Main approach is used; no registered Python verifier covers it."
+        }
+      ],
+      "model": null,
+      "target_variable": "extra_cash_needed",
+      "factors": [
+        {
+          "variable": "initial_cash",
+          "value": 220,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "Initial cash in checking Evidence: I have $220 in checking",
+          "relevant": true
+        },
+        {
+          "variable": "bill_amount",
+          "value": 300,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "Bill amount due on the 4th Evidence: a $300 bill due on the 4th",
+          "relevant": true
+        },
+        {
+          "variable": "paycheck_amount",
+          "value": 150,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "Paycheck amount arriving on the 3rd Evidence: a $150 paycheck on the 6th | The paycheck will arrive on the 3rd instead of the 6th",
+          "relevant": true
+        },
+        {
+          "variable": "bill_due_date",
+          "value": "the 4th",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "Bill due date Evidence: a $300 bill due on the 4th",
+          "relevant": true
+        },
+        {
+          "variable": "paycheck_arrival_date",
+          "value": "the 3rd",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "Paycheck arrival date Evidence: The paycheck will arrive on the 3rd instead of the 6th",
+          "relevant": true
+        },
+        {
+          "variable": "extra_cash_needed",
+          "value": 0,
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated extra cash needed",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "You need $0 before the bill is due.",
+        "detail": null
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Current question approach",
+          "text": "Calculate extra cash needed as the maximum of 0 and the difference between the bill amount and the cash available before the bill"
+        },
+        {
+          "label": "Main calculation",
+          "text": "Extra cash needed = max(0, bill amount - cash available before the bill) = max(0, $300 - ($220 + $150)) = max(0, $300 - $370) = max(0, -$70) = $0"
+        }
+      ],
+      "assumptions": [],
+      "limitations": []
+    }
+  },
+  {
+    "case": "covered_bill_split",
+    "prompt": "Nina, Leo, and I split a $90 bill equally. How much does each owe?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: a $90 bill"
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": "text",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I"
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": "text",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each owe?"
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine the amount each person owes for a $90 bill split equally among three people.",
+      "confidence_note": "High confidence in the target variable and factors due to explicit user statement.",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "supporting_targets": [],
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $90 bill",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "a $90 bill",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each owe?",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I split a $90 bill equally. How much does each owe?",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "Nina, Leo, and I split a $90 bill equally. How much does each owe?"
+          }
+        ],
+        "active_question": "Nina, Leo, and I split a $90 bill equally. How much does each owe?",
+        "reference_date": "2026-11-16",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "amounts_owed",
+        "main_value": 30,
+        "python_value": {
+          "Nina": "30.00",
+          "Leo": "30.00",
+          "me": "30.00"
+        },
+        "unit": "$",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $90 bill",
+          "relevant": true
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each owe?",
+          "relevant": true
+        },
+        {
+          "variable": "amounts_owed",
+          "value": 30,
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Amounts owed: $30.00",
+        "detail": "Equal Split of $90 Bill"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "90 / 3 = 30"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "The bill is split equally among the three people",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  }
+]

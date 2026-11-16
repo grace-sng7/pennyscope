@@ -1,7 +1,8 @@
-"""LLM-first draft, independent verification, Inspector, and reviewed scenarios.
+"""Main-owned answers, advisory target verification, and bounded scenario caches.
 
-Only a successful review can populate the bounded, short-lived scenario cache.
-Financial facts never leave process memory except for the selected Gemini calls.
+Completed target-aware Main answers remain visible when verification fails.
+The older fixed-input scenario/slider contract is retained for legacy requests.
+Financial facts never leave process memory except for the selected provider calls.
 """
 import hashlib
 import inspect
@@ -21,6 +22,8 @@ import savings_model
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import dynamic_models
+import answer_verification
+import calculation_handoff as handoff
 from financial_tools import (calculate_savings, calculate_cash_flow, split_bill,
                              split_custom, settle_payments, calculate_debt_repayment)
 
@@ -34,18 +37,23 @@ TTL = 1800
 MAX_SCENARIOS = 128
 
 MAIN = '''You are Penny Scope's MAIN financial analyst, not a verifier.
-Interpret the question and source evidence, choose an existing financial model,
-extract its inputs and perform the PRIMARY calculation yourself. Draft a concise
+Interpret the question and source evidence, assess the resolved model/target,
+bind its inputs and perform the PRIMARY calculation yourself. For legacy requests
+without a resolved selection, choose an existing financial model. Draft a concise
 answer and show the calculation with inputs, units and assumptions.
+User-facing answer text must use sentences or short lists, never tables.
 Never invent user facts or treat missing values as zero. Existing savings are not
 necessarily available for this goal. If availability is unclear ask for it.
 Never treat a recurring cost as a one-time goal. Never assume a partial list of
 expenses is the full monthly total. Latest explicit edits win. Unknown means null.
-Return JSON:
-{"model":"savings_goal" or an available tool name or "gap",
+Return JSON, evaluating the numeric arithmetic in calculation FIRST, before
+writing results or derived factors. Do not write a generic method summary in
+place of the actual arithmetic. The results and factors must follow that work:
+{"calculation":"numeric working with actual intermediate and final values",
+ "model":"savings_goal" or an available tool name or "gap",
  "target_variable":"the factor being solved", "factors":[{"variable":"...","value":null,"unit":"$","role":"missing","source":"missing","source_detail":"...","relevant":true}],
  "inputs":{}, "bindings":{}, "results":{}, "headline":"...",
- "calculation":"...", "assumptions":["..."],
+ "assumptions":["..."],
  "missing_inputs":[{"variable":"...","label":"...","unit":"..."}],
  "gap_reason":"..."}.
 Use the existing calculator's exact native keyword arguments and bind every
@@ -65,8 +73,8 @@ source labels, user corrections, and assumptions. Matching arithmetic alone does
 not prove correct interpretation. Identify material ambiguities (including savings
 availability, partial expenses, recurring versus one-time costs, and estimates).
 Classify disagreement as arithmetic, interpretation, missing_evidence, model_gap,
-or none. Pure arithmetic errors are resolved using Python's verified numbers;
-never ask users to resolve arithmetic. Do not expose internal disagreements.
+or none. Python verification is advisory. Preserve Main's completed answer on arithmetic
+disagreement or an unavailable check; never ask users to resolve arithmetic.
 Return JSON {"decision":"approved"|"needs_input"|"unsupported",
 "reason_type":"...", "reason":"brief explanation",
 "missing_inputs":[{"variable":"...","label":"...","unit":"..."}],
@@ -81,7 +89,8 @@ question or explicit conditional assumption; never approve fabricated user facts
 MAIN += """
 DYNAMIC FACTOR PROTOCOL (overrides the older fixed savings-input rules):
 Every existing financial model has shared factors; no factor is permanently an
-input or an output. Select model and target_variable from the user's question.
+input or an output. Use the resolved model and target_variable when supplied;
+otherwise select them from the user's question.
 For new requests include target_variable and factors in your draft. Each factor:
 {variable, value: number|string|null, unit, role: known|derived|missing,
  source: stated|inferred|missing, source_detail, relevant: true|false}.
@@ -240,27 +249,85 @@ def _verify(draft):
     return TOOLS[draft['model']](**draft['inputs'])
 
 
-def _disagreements(proposed, actual, path=''):
-    differences = []
-    for key, value in actual.items():
-        p = f'{path}.{key}' if path else key
-        other = proposed.get(key) if isinstance(proposed, dict) else None
-        if isinstance(value, dict):
-            differences.extend(_disagreements(other, value, p))
-        elif isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.', '', 1).lstrip('-').isdigit()):
-            try:
-                if other is None or abs(Decimal(str(other)) - Decimal(str(value))) > Decimal('0.005'):
-                    differences.append(p)
-            except Exception:
-                differences.append(p)
-        elif other != value:
-            differences.append(p)
-    return differences
+def _disagreements(proposed, actual, target=None, unit=None, equal_shares=False):
+    return answer_verification.disagreements(proposed, actual, target, unit, equal_shares)
+
+
+def _main_missing_input(draft, facts, selection, parameters):
+    """Preserve Main's single question; independently check sufficiency only."""
+    item=draft['missing_inputs'][0]
+    question=item.get('label') or item.get('question') or 'What is your '+item['variable'].replace('_',' ')+'?'
+    response={'status':'needs_input','message':question,'missing_inputs':[{**item,'label':question}]}
+    target=(selection or {}).get('target_variable') or draft.get('target_variable')
+    model=(selection or {}).get('model') or draft.get('model')
+    if not target or model not in ('savings_goal','budget_cash_flow','bill_split','bill_custom','bill_settlement','debt_repayment'):
+        return response # No supported target to check; no warning.
+    verification={'status':'unverified','context':'question','target_variable':target,
+                  'main_value':None,'unit':answer_verification.unit_for(target)}
+    try:
+        canonical={'bill_custom':'bill_split','bill_settlement':'bill_split'}.get(model,model)
+        plan=(selection or {}).get('input_plan') or handoff.input_plan(canonical,target,facts)
+        checking={'model':plan['model'],'target_variable':target,'inputs':plan['inputs'],'bindings':plan['bindings'],
+                  'factors':[{'variable':target,'value':None,'unit':verification['unit'],'role':'missing','source':'missing','source_detail':'Requested result is not supplied by Main.'}]}
+        if selection:handoff.validate_mode(checking,selection)
+        _validate(checking,facts,parameters)
+        actual=_verify(checking)
+        value=answer_verification.result_value(actual,target)
+        answer_verification.same_final(value,value,verification['unit'],target)
+        verification.update(status='input_sufficient',python_value=value,
+                            message='The independent check found enough information to calculate.')
+    except Exception:
+        pass # Failed/skipped checks never decorate or suppress the question.
+    response['verification']=verification
+    return response
+
+
+def _advisory_calculate(draft, facts, selection, req, key, parameters):
+    response, main_value, unit = answer_verification.main_response(draft, facts)
+    target=draft['target_variable']
+    verification={'status':'unverified','target_variable':target,'main_value':main_value,'unit':unit,
+                  'message':'The independent check could not verify this answer. Main’s answer is shown.'}
+    actual=None; differences=[]
+    try:
+        checking=json.loads(json.dumps(draft))
+        checking['factors']=[f for f in response['factors'] if f['variable']==target]
+        if selection and selection.get('input_plan'):
+            plan=selection['input_plan']
+            checking.update(model=plan['model'],inputs=plan['inputs'],bindings=plan['bindings'])
+        if selection:handoff.validate_mode(checking,selection)
+        _validate(checking,facts,parameters)
+        actual=_verify(checking)
+        python_value=answer_verification.result_value(actual,target)
+        differences=_disagreements({target:main_value},actual,target,unit,
+                                  equal_shares=checking.get('inputs',{}).get('method')=='equal')
+        verification.update(status='mismatch' if differences else 'matched',python_value=python_value,
+                            message='The independent check differs from Main’s answer. Main’s answer is shown.' if differences else 'The requested final result matches the independent check.')
+    except Exception:
+        # A solver/binding/unit/availability failure is advisory once Main has
+        # supplied a structurally valid answer. Never expose provider internals.
+        pass
+    try:
+        review=call_json(INSPECTOR,json.dumps({'request':req,'main_draft':draft,'python_result':actual,
+                         'arithmetic_disagreements':differences,'verification':verification},default=str),stage='inspector')
+    except Exception:
+        review={}
+    # Genuine missing facts are handled by resolve() and Main.missing_inputs
+    # before a completed answer reaches this function. Inspector is advisory here.
+    response['verification']=verification
+    from contract import CalculateResponse
+    CalculateResponse.model_validate(response)
+    with LOCK:
+        CACHE[key]={'time':time.monotonic(),'advisory':True,'response':json.loads(json.dumps(response)),
+                    'draft':draft,'resolved_request':req}
+        CACHE.move_to_end(key)
+        while len(CACHE)>MAX_SCENARIOS:CACHE.popitem(last=False)
+    return response
 
 
 def _present(draft, actual, review, req):
     if draft.get('target_variable') and draft.get('factors') is not None:
-        return dynamic_models.present(draft, actual, review, _facts(req))
+        response, _, _ = answer_verification.main_response(draft, _facts(req))
+        return response
     if draft['model'] == 'savings_goal':
         # Reuse the original UI formatter, passing the resolved plan and verified
         # arithmetic. It no longer invents the primary plan or initial answer.
@@ -307,7 +374,11 @@ def calculate(req):
             if cached and time.monotonic() - cached['time'] > TTL:
                 del CACHE[key]
                 cached = None
+        if cached and cached.get('advisory'):
+            if parameters:raise ValueError('This answer has no scenario controls.')
+            return json.loads(json.dumps(cached['response']))
         if cached:
+            req = cached.get('resolved_request', req)
             draft = json.loads(json.dumps(cached['draft']))
             if parameters and draft.get('target_variable'):
                 raise ValueError('This reviewed result has no scenario controls.')
@@ -334,18 +405,52 @@ def calculate(req):
         if pending:
             # Retry resumes only the failed Inspector; facts and draft stay fixed.
             draft, actual, differences = pending['draft'], pending['actual'], pending['differences']
+            req = pending.get('resolved_request', req)
+            facts = _facts(req)
         else:
+            req = handoff.apply_intent_answer(req)
+            facts = _facts(req)
+            selection, clarification = handoff.resolve(req, facts)
+            if clarification: return clarification
             schemas = {k: {'signature': str(inspect.signature(v)), 'description': inspect.getdoc(v)} for k, v in dynamic_models.TOOLS.items()}
-            draft = call_json(MAIN, json.dumps({'request': req, 'available_tools': schemas}, default=str), stage='main_calculation')
+            schemas['savings_goal']['adapter_inputs']={
+                'spending_entries':'Complete raw expense breakdown instead of monthly_spending; bind to spending_entries.',
+                'months':'Integer horizon binds to explicit goal_deadline in months or contribution_months, never calendar text.'}
+            schemas['budget_cash_flow']['adapter_inputs']={
+                'monthly_surplus':'Explicit monthly surplus; use instead of income/spending breakdown.',
+                'replaced_recurring_cost':'Old monthly charge that stops; provide alongside spending_change=full new charge.',
+                'spending_change_entries':'Raw periodic new charges.',
+                'expense_adjustments':'Explicit user-selected expense reductions.'}
+            for attempt in range(2):
+                draft = call_json(MAIN, json.dumps({'request': req, 'available_tools': schemas,
+                    'resolved_selection': selection, 'reevaluation_used': bool(attempt),
+                    'primary_calculation_guide':handoff.primary_calculation_guide(selection)}, default=str), stage='main_calculation')
+                import base_input_rules
+                draft=base_input_rules.normalize_draft(draft)
+                if draft.get('missing_inputs') and not draft.get('intent_mismatch'):
+                    return _main_missing_input(draft,facts,selection,parameters)
+                if not selection or handoff.matches(draft, selection): break
+                if attempt:
+                    return handoff.question('model_selection', 'Should we calculate '+selection['target_variable'].replace('_',' ')+', or did you mean a different result?')
+                req = handoff.reevaluate(req, facts, selection, draft)
+                facts = _facts(req)
+                selection, clarification = handoff.resolve(req, facts)
+                if clarification: return clarification
+                if selection is None:
+                    return handoff.question('model_selection','Which financial result would you like to calculate?')
             if draft.get('missing_inputs'):
-                return {'status': 'needs_input', 'message': 'Please clarify these details before a result can be reviewed.', 'missing_inputs': draft['missing_inputs']}
+                return _main_missing_input(draft,facts,selection,parameters)
             if draft.get('model') not in {'savings_goal', *TOOLS}:
                 return {'status': 'unsupported', 'message': draft.get('gap_reason') or 'No existing financial model fits this question.'}
+            if draft.get('target_variable') and draft.get('factors') is not None:
+                return _advisory_calculate(draft,facts,selection,req,key,parameters)
+            if selection:
+                handoff.validate_mode(draft, selection)
             _validate(draft, facts, parameters)
             actual = _verify(draft)
             differences = _disagreements(draft.get('results', {}), actual)
             with LOCK:
-                PENDING_REVIEWS[pending_key] = {'time': time.monotonic(), 'draft': draft, 'actual': actual, 'differences': differences}
+                PENDING_REVIEWS[pending_key] = {'time': time.monotonic(), 'draft': draft, 'actual': actual, 'differences': differences, 'resolved_request': req}
                 PENDING_REVIEWS.move_to_end(pending_key)
                 while len(PENDING_REVIEWS) > MAX_SCENARIOS:
                     PENDING_REVIEWS.popitem(last=False)
@@ -356,7 +461,7 @@ def calculate(req):
         if review.get('decision') == 'needs_input':
             if not review.get('missing_inputs'):
                 raise ValueError('The review needs more information; please clarify the question.')
-            return {'status': 'needs_input', 'message': 'Please clarify these details before a final answer.', 'missing_inputs': review['missing_inputs']}
+            return {'status': 'needs_input', 'message': 'Please clarify these details before a final answer.', 'missing_inputs': review['missing_inputs'][:1]}
         if review.get('decision') == 'unsupported':
             return {'status': 'unsupported', 'message': review.get('reason', 'This scenario needs another financial model.')}
         if review.get('decision') != 'approved' or not isinstance(review.get('headline'), str) or not isinstance(review.get('assumptions'), list):
@@ -381,13 +486,20 @@ def calculate(req):
         from contract import CalculateResponse
         CalculateResponse.model_validate(result)
         with LOCK:
-            CACHE[key] = {'time': time.monotonic(), 'draft': draft, 'review': review, 'savings_limit': savings_limit}
+            CACHE[key] = {'time': time.monotonic(), 'draft': draft, 'review': review, 'savings_limit': savings_limit, 'resolved_request': req}
             CACHE.move_to_end(key)
             while len(CACHE) > MAX_SCENARIOS:
                 CACHE.popitem(last=False)
         return result
     except (ValueError, TypeError, KeyError, ArithmeticError):
-        # Never reveal provider content, draft internals, or invalid financial values.
+        if req.get('extraction_meta',{}).get('model') and locals().get('draft'):
+            import chat_fallback
+            usable=chat_fallback.from_main(draft)
+            if usable:
+                return {'status':'conditional' if usable['kind']=='answer' else 'needs_input',
+                        'answer':{'headline':usable['text']} if usable['kind']=='answer' else None,
+                        'message':usable['text'] if usable['kind']!='answer' else None,'chat_fallback':usable}
+        # Requests with no usable Main result are recovered by the API boundary.
         raise HTTPException(status_code=422, detail='The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.') from None
 
 
@@ -432,4 +544,132 @@ weekly/biweekly/semimonthly annualization, and whether new spending is additiona
 rather than already included. Savings and a goal deadline are not necessary for
 ongoing budget-fit questions. A positive average surplus is a budget fit under
 the stated assumptions, not a guarantee of cash available on each payment date.
+"""
+
+
+MAIN += """
+RESOLVED SELECTION HANDOFF:
+When resolved_selection is present, use its registry definition, model and target.
+Do not silently change them or choose a different solver target. You still perform
+all primary calculations. Independently assess whether the selection matches the
+user's original intent and latest corrections. If it does not, return
+intent_mismatch=true, mismatch_reason, model and target_variable as your explicit
+proposal, without a final answer. Python allows ONE Router/Extraction reevaluation.
+On the second draft, unresolved disagreement must remain explicit; never pretend
+agreement. Do not ask for income/expenses when a stated monthly_surplus supports
+a budget scenario. Use native adapter input monthly_surplus bound to that fact,
+plus spending_change bound to recurring_cost for a monthly additional charge.
+The verifier computes surplus + income_change - spending_change without inventing
+an income/spending breakdown. Nonmonthly proposed changes use spending_change_entries.
+Savings monthly_savings can bind to an explicit monthly_surplus as an equivalent
+contribution; starting savings may bind to explicit available_savings.
+An anonymous participant count can be passed directly as people for an equal split;
+the verifier assigns display identifiers. Never invent named participants.
+For bill settlement with known amounts_owed and amounts_paid use bill_settlement.
+"""
+
+
+MAIN += """
+REPLACEMENT RECURRING CHARGES:
+When replacing rent or another ongoing charge, the old charge stops. Use the
+explicit extracted replaced_recurring_cost and new recurring_cost. For budget
+calculations use spending_change bound to the FULL new recurring_cost and adapter
+input replaced_recurring_cost bound to the old charge. Perform the primary math
+yourself; the Python adapter independently subtracts old from new. Do not bind a
+calculated difference as a supplied fact. Example: new rent 1400, old rent 1000,
+current surplus 700 -> spending change 400 -> projected surplus 300.
+A current surplus already accounts for current rent. Never subtract the full new
+rent again. A proposed move date does not establish cash timing, moving fees or
+a savings deadline; ongoing budget fit uses the monthly difference.
+"""
+
+
+MAIN += """
+Exact replacement binding example (substitute actual user amounts):
+User facts recurring_cost=1400, replaced_recurring_cost=1000, monthly_surplus=700.
+The adapter_inputs extend the native signature; use them directly. Return
+inputs={"monthly_surplus":700,"spending_change":1400,"replaced_recurring_cost":1000}
+bindings={"monthly_surplus":"monthly_surplus","spending_change":"recurring_cost","replaced_recurring_cost":"replaced_recurring_cost"}
+results={"monthly_surplus":700,"scenario_monthly_surplus":300,"affordable":true}
+with affordability_status="Yes" as the derived target (unit=text).
+The primary calculation is 700-(1400-1000)=300, so the monthly budget fits.
+NEVER return spending_change=400 bound to an expression: expressions are not fact
+IDs, and 400 was not supplied by the user. Keep calculated differences in results.
+"""
+
+
+MAIN += """
+SAVINGS COMPLETE EXPENSE BREAKDOWNS AND CALENDAR DEADLINES:
+The savings adapter supports spending_entries in place of monthly_spending.
+Retain supplied entries in inputs and bind them to spending_entries; you perform
+the primary sum and Python independently sums the same raw entries. Never bind
+a computed expense total to an individual expense or use an arithmetic expression
+as a binding. Complete entries require explicit coverage (e.g. rent and everything
+else). A partial expense list must be clarified before assuming it is a total.
+Example with income=2400, rent=1000, all other spending=600, available_savings=900,
+goal_amount=2500 and contribution_months=4:
+inputs={"solve_for":"affordability","current_savings":900,"monthly_income":2400,"spending_entries":[{"name":"rent","amount":1000,"frequency":"monthly"},{"name":"everything else","amount":600,"frequency":"monthly"}],"months":4,"target":2500}
+bindings={"current_savings":"available_savings","monthly_income":"monthly_income","spending_entries":"spending_entries","months":"contribution_months","target":"goal_amount"}
+Calculate spending=1600, surplus=800, projected_savings=4100; the target is achievable.
+Use the user's actual entry objects unchanged. A calendar phrase is not a numeric
+horizon; use the supplied contribution_months instead of guessing from next March.
+Existing savings holdings still require explicit permission to use them for the goal.
+"""
+
+
+MAIN += """
+BASE INPUT CONTRACT:
+When resolved_selection.input_plan is supplied, it identifies the supported native
+inputs and their exact fact bindings. Use these raw values and bindings unchanged
+for your primary calculation. Optional absent fields stay omitted. For anonymous
+equal splits use the numeric participant count as people, not null or invented
+names. Do not supply tax=0/tip=0 for an all-inclusive equal total; the calculator
+already includes them. For named participants retain the supplied name list.
+For itemized splits keep literal item arrays with shared_by; do not convert a
+shared item's price into the total bill or duplicate shared items. Paid amounts
+may contain a single whole-bill payer; verification fills other zero payments only
+when the supplied paid total reconciles with the bill.
+For a purchase today use months=0 with no contribution input: no future deposits
+are needed. Monthly contribution capacity is irrelevant to that target today.
+Include explicitly requested supporting_targets from the same model in the
+draft factors/results, e.g. total_interest together with payoff months.
+"""
+
+
+MAIN += """
+input_plan.model is the exact native tool for the supplied representation. A
+settlements target does not itself select bill_settlement: when shares must first
+be calculated from total/items, use bill_split with amounts_paid in the same call.
+Only already-supplied amounts_owed can be an input to bill_settlement. Do not
+bind computed shares as supplied evidence or expand amounts_paid with invented
+zero user facts. Use the literal amounts_paid map unchanged; the verifier handles
+its documented whole-bill inference.
+"""
+
+
+INSPECTOR += """
+ADVISORY VERIFICATION POLICY (overrides the earlier arithmetic replacement rule):
+Main owns the displayed answer. Python checks only the requested final target.
+Do not replace Main's number, reject an answer, invent a coverage gap or request
+user input because verification mismatched or was unavailable. Such issues are
+annotations, not vetoes. Only genuinely absent user facts affecting the question
+may produce needs_input, with reason_type=missing_evidence or interpretation and
+one explicit missing input. Ignore differences in inputs/intermediate results,
+metadata or explanation wording when the final requested answer matches.
+"""
+
+
+MAIN += """
+For an itemized bill with only a combined tax/tip amount, use adapter input
+ tax_and_tip bound to tax_and_tip_amount, without invented separate components.
+The existing native bill calculator allocates that pooled charge proportionally
+across pretax item shares. Keep literal item amounts and ownership unchanged.
+Perform itemized math per participant: for each item, divide its amount only by
+the number of that item's shared_by owners and add that portion to each owner.
+Let each participant's subtotal be their sum of item portions. For a proportional
+pooled charge, their fee is pooled_charge * their_subtotal / sum(all_subtotals).
+Their final share is their_subtotal + their fee. Round final currency shares to
+cents and ensure they sum to the complete bill. An equal shared item does not
+make separately owned items or proportional fees equal across all participants.
+Return these individual final shares in amounts_owed, preserving participants.
 """

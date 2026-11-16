@@ -1,7 +1,8 @@
 'use client';
-import { ModelResultDetails, FactorValue } from './model-result-details';
+import { FactorValue } from './model-result-details';
 import { ROLE_TITLES, type FactorRole } from '../lib/model-factors';
 import { useId, useState, type ReactNode } from 'react';
+import { VerificationWarning } from './verification-warning';
 import { parseEdit } from '../lib/field-values';
 import { canonicalParameters } from '../lib/calculation-contract';
 import type { AssumptionValue } from '../lib/extraction';
@@ -13,14 +14,14 @@ function display(value: AssumptionValue, unit: string) {
   const v = typeof value === 'number' ? unit.startsWith('$') ? money(value) : value.toLocaleString('en-US') : value;
   return `${v}${unit === '$/month' ? ' / month' : unit && unit !== '$' ? ` ${unit}` : ''}`;
 }
-export function FieldControl({ field, app, onChange, disabled = false, valueOverride, scenario = false }: { scenario?: boolean; valueOverride?: AssumptionValue; field: EditableField; app: ApplicationState; onChange: ChangeValue; disabled?: boolean }) {
+export function FieldControl({ field, app, onChange, disabled = false, valueOverride, scenario = false, verification }: { scenario?: boolean; verification?: CalculationResponse['verification']; valueOverride?: AssumptionValue; field: EditableField; app: ApplicationState; onChange: ChangeValue; disabled?: boolean }) {
   const id = useId();
   const value = valueOverride === undefined ? boundValue(app, field.binding, field.value) : valueOverride;
   const c = field.control;
   const update = (v: string) => onChange(field.binding, c.type === 'number' || c.type === 'range' ? v.trim() && Number.isFinite(Number(v)) ? Number(v) : v : v);
   const currency = scenario && field.unit === '$';
   const shownValue = value !== null && String(value).trim() && Number.isFinite(Number(value)) ? Number(value) : value;
-  return <div className={`parameter-field${scenario ? ' scenario-field' : ''}`}><label htmlFor={id}>{field.label}{field.unit && !currency ? ` (${field.unit})` : ''}</label>
+  return <div className={`parameter-field${scenario ? ' scenario-field' : ''}`}><label htmlFor={id}>{field.label}{field.unit && !currency ? ` (${field.unit})` : ''}<VerificationWarning verification={verification} /></label>
     {scenario && c.type === 'range' && <output className="scenario-amount" htmlFor={id}>{display(shownValue, field.unit)}</output>}
     {c.type === 'select' ? <select id={id} value={String(value ?? '')} disabled={disabled} onChange={e => update(e.target.value)}><option value="">Choose…</option>{c.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> : <>
       <div className={scenario && c.type !== 'range' ? 'scenario-value-input' : undefined}>{currency && c.type !== 'range' && <span aria-hidden="true">$</span>}<input id={id} type={c.type} value={value ?? ''} min={c.min} max={c.max} step={c.step ?? 'any'} disabled={disabled} onChange={e => update(e.target.value)} aria-describedby={field.help ? `${id}-help` : undefined} /></div>
@@ -61,12 +62,11 @@ export function ResultView({ response, app, onChange, onDraft, onRevert, onStep,
   const sections = activeInline && !baseSections.includes(4) ? [4, ...baseSections] : baseSections;
   const content: Record<number, ReactNode> = {
     1: <>{response.information.length ? <InformationGroups response={response} app={app} onChange={onChange} onDraft={onDraft} onRevert={onRevert} onConfirm={onConfirm} /> : <p className="muted">No information returned yet.</p>}<p className="muted information-hint">Confirmation is optional.</p>{app.extraction && <details className="additional-context"><summary>More context</summary><p>{app.extraction.goal_summary}</p><p>{app.extraction.confidence_note}</p></details>}</>,
-    2: <>{!response.questions.length && <p className="muted">No questions need answering here.</p>}{response.status === 'needs_input' && response.message && <p role="status">{response.message}</p>}{response.questions.map(q => <div className="question" key={q.id}><FieldControl field={q} app={app} onChange={onChange} />{q.extractionQuestionIndices?.some(i => app.extraction?.clarification_questions[i]?.question !== q.label) && <details><summary>Original extraction questions</summary>{q.extractionQuestionIndices.map(i => <p key={i}>{app.extraction?.clarification_questions[i]?.question}</p>)}</details>}<small className="annotation">{q.required ? 'Required' : 'Optional clarification'}</small></div>)}</>,
+    2: <>{!response.questions.length && <p className="muted">No questions need answering here.</p>}{response.status === 'needs_input' && response.message && response.message !== response.questions[0]?.label && <p role="status">{response.message}</p>}{response.questions.map((q, index) => <div className="question" key={q.id}><FieldControl field={q} app={app} onChange={onChange} verification={index === 0 ? response.verification : undefined} />{q.extractionQuestionIndices?.some(i => app.extraction?.clarification_questions[i]?.question !== q.label) && <details><summary>Original extraction questions</summary>{q.extractionQuestionIndices.map(i => <p key={i}>{app.extraction?.clarification_questions[i]?.question}</p>)}</details>}<small className="annotation">{q.required ? 'Required' : 'Optional clarification'}</small></div>)}</>,
     3: <div className="formula-list">{(!success || !response.explanations.length) && <p className="muted">Calculations will appear when a supported result is available.</p>}{success && response.explanations.map((step, i) => <div key={i}><strong>{step.label}</strong><p>{step.text}</p></div>)}</div>,
-    4: <div className="dynamic-answer" data-result-status={response.status}><span className="answer-status">{({ ready: 'Ready', conditional: 'Conditional estimate', needs_input: 'More information needed', unsupported: 'Calculation unavailable', stale: refreshing ? 'Updating' : 'Needs recalculation' })[response.status]}</span>{template && (success || activeInline) && <InlineAnswer answer={template} fields={templateFields} app={app} onChange={onChange} current={success} onFocus={setActiveInline} onBlur={() => setActiveInline(null)} />}{!success && <p role="status">{response.message}</p>}
+    4: <div className="dynamic-answer" data-result-status={response.status}><span className="answer-status">{({ ready: 'Ready', conditional: 'Conditional estimate', needs_input: 'More information needed', unsupported: 'Calculation unavailable', stale: refreshing ? 'Updating' : 'Needs recalculation' })[response.status]}</span>{template && (success || activeInline) && <InlineAnswer answer={template} fields={templateFields} app={app} onChange={onChange} current={success} verification={success ? response.verification : undefined} onFocus={setActiveInline} onBlur={() => setActiveInline(null)} />}{!success && <p role="status">{response.message}</p>}
       {success && response.assumptions.length > 0 && <ReviewReminder assumptions={response.assumptions} onReview={id => document.getElementById(`parameter-${id}`)?.querySelector<HTMLElement>('input, select')?.focus()} />}
     {(success || stale && refreshing) && controls.length > 0 && <ScenarioControls fields={controls} app={app} onChange={onChange} />}
-            {(success || response.status === 'unsupported') && (response.metrics.length > 0 || !!response.factors?.length || success && !!response.answer.detail) && <details className="answer-limitations"><summary>Supporting details</summary><ModelResultDetails context={response} /><dl className="scenario-summary">{response.metrics.map((m, i) => <div key={i}><dt>{m.label}</dt><dd>{m.value}</dd></div>)}</dl>{success && response.answer.detail && <p>{response.answer.detail}</p>}</details>}
       {success && response.limitations.length > 0 && <details className="answer-limitations"><summary>Limitations</summary><ul>{response.limitations.map((s, i) => <li key={i}>{s}</li>)}</ul></details>}
     {response.nextActions.map((a, i) => <button key={i} onClick={() => onAction(a.action)}>{a.label}</button>)}{stale && refreshing && <span className="sr-only" role="status">Updating calculation</span>}</div>,
   };
@@ -77,7 +77,7 @@ export function ResultView({ response, app, onChange, onDraft, onRevert, onStep,
   })}</>;
 }
 
-export function InlineAnswer({ answer, fields, app, onChange, current, onFocus, onBlur }: { answer: AnswerContent; fields: EditableField[]; app: ApplicationState; onChange: ChangeValue; current: boolean; onFocus: (id: string) => void; onBlur: () => void }) {
+export function InlineAnswer({ answer, fields, app, onChange, current, onFocus, onBlur, verification }: { answer: AnswerContent; verification?: CalculationResponse['verification']; fields: EditableField[]; app: ApplicationState; onChange: ChangeValue; current: boolean; onFocus: (id: string) => void; onBlur: () => void }) {
   return <h3 className={current ? 'answer-heading' : 'inline-pending'}>{answer.segments?.length ? answer.segments.map((segment, index) => {
     if (segment.type === 'text') return <span key={index}>{current ? segment.text : ''}</span>;
     const field = fields.find(f => f.id === segment.parameterId);
@@ -85,7 +85,7 @@ export function InlineAnswer({ answer, fields, app, onChange, current, onFocus, 
     const value = boundValue(app, field.binding, field.value);
     if (field.control.type === 'select') return <select key={index} className="inline-parameter" aria-label={`Answer: ${field.label}`} value={String(value ?? '')} onFocus={() => onFocus(field.id)} onBlur={onBlur} onChange={e => onChange(field.binding, e.target.value)}><option value="">Choose…</option>{field.control.options?.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>;
     return <span key={index} className="inline-editable">{segment.prefix}<input className="inline-parameter" aria-label={`Answer: ${field.label}`} type={field.control.type === 'number' || field.control.type === 'range' ? 'number' : field.control.type === 'date' ? 'date' : 'text'} value={value ?? ''} min={field.control.min} max={field.control.max} step={field.control.step ?? 'any'} style={{ width: `${Math.max(4, String(value ?? '').length + 1)}ch` }} onFocus={() => onFocus(field.id)} onBlur={onBlur} onChange={e => onChange(field.binding, e.target.value)} />{segment.suffix}</span>;
-  }) : current ? answer.headline : null}</h3>;
+  }) : current ? answer.headline : null}<VerificationWarning verification={verification} /></h3>;
 }
 export function ReviewReminder({ assumptions, onReview }: { assumptions: CalculationResponse['assumptions']; onReview: (id: string) => void }) {
   const actionable = assumptions.filter(a => a.reviewLabel && a.parameter);

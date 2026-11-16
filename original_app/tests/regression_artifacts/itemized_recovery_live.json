@@ -1,0 +1,518 @@
+[
+  {
+    "case": "original",
+    "prompt": "Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "total_bill",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Not provided"
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I"
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "source": "inferred",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?; Contextual input interpretation supported by the quoted user facts."
+        },
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?"
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: Tax and tip together were $10"
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine the amount each person owes for a shared meal with tax and tip split proportionally to individual orders",
+      "confidence_note": "High confidence in the extraction of participants, items, and tax and tip amount, but the calculation of amounts owed requires further processing",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "supporting_targets": [
+        "settlements"
+      ],
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Not provided",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "role": "known",
+          "source": "inferred",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?; Contextual input interpretation supported by the quoted user facts.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+            "variable": null
+          },
+          "inference": "Contextual input interpretation supported by the quoted user facts."
+        },
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Tax and tip together were $10",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Tax and tip together were $10",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?"
+          }
+        ],
+        "active_question": "Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+        "reference_date": "2026-11-16",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "amounts_owed",
+        "main_value": {
+          "Nina": 24,
+          "Leo": 24,
+          "me": 12
+        },
+        "python_value": {
+          "Nina": "24.00",
+          "Leo": "24.00",
+          "me": "12.00"
+        },
+        "unit": "$",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "role": "known",
+          "source": "inferred",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?; Contextual input interpretation supported by the quoted user facts.",
+          "relevant": true
+        },
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?",
+          "relevant": true
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Tax and tip together were $10",
+          "relevant": true
+        },
+        {
+          "variable": "amounts_owed",
+          "value": "{\"Nina\": 24, \"Leo\": 24, \"me\": 12}",
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Amounts owed: Nina: $24.00; Leo: $24.00; me: $12.00",
+        "detail": "Bill Split Calculation"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "(30/3) + (10/1) = 20 for Nina pretax subtotal, (30/3) + (10/1) = 20 for Leo pretax subtotal, (30/3) = 10 for me pretax subtotal. Sum of subtotals = 20 + 20 + 10 = 50. Nina fee = 10 * (20/50) = 4, Leo fee = 10 * (20/50) = 4, me fee = 10 * (10/50) = 2. Nina final = 20 + 4 = 24, Leo final = 20 + 4 = 24, me final = 10 + 2 = 12"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "Itemized split method",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "Tax and tip split proportionally to individual orders",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "case": "paraphrase",
+    "prompt": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?"
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: Tax and tip together cost $10"
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "source": "inferred",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?; Contextual input interpretation supported by the quoted user facts."
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s."
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine the amount each person owes for the shared pizza, salad, and drink, including tax and tip.",
+      "confidence_note": "The question provides clear information about the shared items, their costs, and the participants. However, the calculation of the amounts owed by each person requires careful consideration of the itemized split method and the proportional allocation of tax and tip.",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "supporting_targets": [
+        "settlements"
+      ],
+      "factors": [
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Tax and tip together cost $10",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Tax and tip together cost $10",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "role": "known",
+          "source": "inferred",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?; Contextual input interpretation supported by the quoted user facts.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+            "variable": null
+          },
+          "inference": "Contextual input interpretation supported by the quoted user facts."
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s.",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?"
+          }
+        ],
+        "active_question": "The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+        "reference_date": "2026-11-16",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "amounts_owed",
+        "main_value": {
+          "Nina": 24,
+          "Leo": 24,
+          "me": 12
+        },
+        "python_value": {
+          "Nina": "24.00",
+          "Leo": "24.00",
+          "me": "12.00"
+        },
+        "unit": "$",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "items",
+          "value": "[{\"name\": \"pizza\", \"amount\": 30, \"shared_by\": [\"Nina\", \"Leo\", \"me\"]}, {\"name\": \"salad\", \"amount\": 10, \"shared_by\": [\"Nina\"]}, {\"name\": \"drink\", \"amount\": 10, \"shared_by\": [\"Leo\"]}]",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?",
+          "relevant": true
+        },
+        {
+          "variable": "tax_and_tip_amount",
+          "value": 10,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Tax and tip together cost $10",
+          "relevant": true
+        },
+        {
+          "variable": "split_method",
+          "value": "itemized",
+          "unit": null,
+          "role": "known",
+          "source": "inferred",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s. Tax and tip together cost $10, allocated in proportion to each person\u2019s pre-tax order. What does each person owe?; Contextual input interpretation supported by the quoted user facts.",
+          "relevant": true
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina\u2019s. The $10 drink was Leo\u2019s.",
+          "relevant": true
+        },
+        {
+          "variable": "amounts_owed",
+          "value": "{\"Nina\": 24, \"Leo\": 24, \"me\": 12}",
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Amounts owed: Nina: $24.00; Leo: $24.00; me: $12.00",
+        "detail": "Each person's share of the bill, including tax and tip"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "First, calculate the pretax subtotal for each participant: Nina = 30/3 + 10/1 = 10 + 10 = 20, Leo = 30/3 + 10/1 = 10 + 10 = 20, me = 30/3 = 10. Then, sum the subtotals: 20 + 20 + 10 = 50. Next, allocate the tax and tip: Nina = 10 * (20/50) = 4, Leo = 10 * (20/50) = 4, me = 10 * (10/50) = 2. Finally, add the tax and tip to each participant's subtotal: Nina = 20 + 4 = 24, Leo = 20 + 4 = 24, me = 10 + 2 = 12."
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "The pizza is shared equally among Nina, Leo, and me.",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "The salad is only for Nina.",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "The drink is only for Leo.",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "Tax and tip are allocated in proportion to each person's pre-tax order.",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  }
+]

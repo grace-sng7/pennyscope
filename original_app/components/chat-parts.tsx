@@ -1,9 +1,9 @@
 'use client';
 // Presentational pieces for the chat view. No service calls and no state beyond local UI state.
-import { useState } from 'react';
+import { VerificationWarning } from './verification-warning';
 import { extractionFactors, factorGroups, displayFactors } from '../lib/model-factors';
-import { ModelResultDetails, FactorValue } from './model-result-details';
-import { canonicalParameters, type CalculationResponse, type EditableField } from '../lib/calculation-contract';
+import { FactorValue } from './model-result-details';
+import { type CalculationResponse } from '../lib/calculation-contract';
 import type { Assumption, ExtractionResponse } from '../lib/extraction';
 import { label, money } from '../lib/workspace-model';
 import s from '../app/chat/chat.module.css';
@@ -53,37 +53,17 @@ export function QuickReplies({ replies, onPick, disabled }: { replies: string[];
   return <div className={s.replies}>{replies.map(r => <button key={r} type="button" disabled={disabled} onClick={() => onPick(r)}>{r}</button>)}</div>;
 }
 
-// The final answer: a sentence with inline numbers, what-if sliders, and the math behind it.
-export function AnswerCard({ response, interactive, params, onParam }: { response: CalculationResponse; interactive: boolean; params: Record<string, string>; onParam: (key: string, value: string) => void }) {
-  const ok = response.status === 'ready' || response.status === 'conditional';
-  const fields = canonicalParameters(response);
-  const value = (f: EditableField) => params[f.id] ?? String(f.value ?? '');
-  if (!ok) return <p className={s.bubbleText}>{response.message}</p>;
-  const sliders = fields.filter(f => f.control.type === 'range');
-  return <div className={s.answer}>
-    <span className={s.badge}>{response.status === 'conditional' ? 'Conditional estimate' : 'Answer'}</span>
-    <p className={s.headline}>{response.answer.segments?.length ? response.answer.segments.map((seg, i) => {
-      if (seg.type === 'text') return <span key={i}>{seg.text}</span>;
-      const f = fields.find(x => x.id === seg.parameterId);
-      return f ? <span key={i} className={s.inline}>{seg.prefix}<input type="number" aria-label={f.label} disabled={!interactive} value={value(f)} min={f.control.min} max={f.control.max} step={f.control.step ?? 'any'} onChange={e => onParam(f.id, e.target.value)} /></span> : null;
-    }) : response.answer.headline}</p>
-    {response.answer.detail && <p className={s.muted}>{response.answer.detail}</p>}
-    {sliders.length > 0 && <div className={s.whatIf}><span className={s.chipCaption}>What if…</span>{sliders.map(f => <label key={f.id}><span>{f.label}</span><strong>{f.unit === '$' ? money(Number(value(f))) : value(f)}</strong>
-      <input type="range" disabled={!interactive} min={f.control.min} max={f.control.max} step={f.control.step ?? 1} value={value(f)} onChange={e => onParam(f.id, e.target.value)} /></label>)}</div>}
-    <ModelResultDetails context={response} />
-    {!response.factors && response.metrics.length > 0 && <dl className="scenario-summary">{response.metrics.map((m, i) => <div key={i}><dt>{m.label}</dt><dd>{m.value}</dd></div>)}</dl>}
-    <MathPanel response={response} />
-  </div>;
+export function QuestionText({ text, verification }: { text: string; verification?: CalculationResponse['verification'] }) {
+  return <p className={s.bubbleText}>{text}<VerificationWarning verification={verification} /></p>;
 }
 
-function MathPanel({ response }: { response: CalculationResponse }) {
-  const [open, setOpen] = useState(false);
-  const has = response.explanations.length || response.assumptions.length || response.limitations.length;
-  if (!has) return null;
-  return <div className={s.math}><button type="button" className={s.link} aria-expanded={open} onClick={() => setOpen(o => !o)}>{open ? 'Hide the math' : 'Show the math'}</button>
-    {open && <div>{response.explanations.map((e, i) => <p key={i}><strong>{e.label}</strong><br />{e.text}</p>)}
-      {response.assumptions.map(a => <p key={a.id} className={s.muted}>Assumption: {a.text}</p>)}
-      {response.limitations.map((l, i) => <p key={i} className={s.muted}>Limit: {l}</p>)}</div>}</div>;
+// Keep the answer box independent of inputs, worksheet data and presentation details.
+export function AnswerCard({ response }: { response: CalculationResponse; interactive: boolean; params: Record<string, string>; onParam: (key: string, value: string) => void }) {
+  const ok = response.status === 'ready' || response.status === 'conditional';
+  if (!ok) return <QuestionText text={response.message ?? ''} verification={response.verification} />;
+  return <div className={s.answer}>
+    <p className={s.headline}>{response.answer.headline}<VerificationWarning verification={response.verification} /></p>
+  </div>;
 }
 
 // Always-visible record of every value and where it came from: the "framework in the background".

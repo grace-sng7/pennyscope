@@ -158,7 +158,34 @@ class LabelText(BaseModel):
     text: str
 
 
+class Verification(BaseModel):
+    status: Literal['matched','mismatch','unverified','input_sufficient']
+    context: Literal['answer','question'] = 'answer'
+    target_variable: str
+    main_value: Any
+    python_value: Any = None
+    unit: Optional[str] = None
+    message: Optional[str] = None
+
+
+class PlainChat(BaseModel):
+    kind: Literal['answer','question','limitation']
+    text: str
+    verification: Optional[Verification] = None
+
+
+class ChatFallbackRequest(BaseModel):
+    user_message: str
+    confirmed_facts: list[WireAssumption] = Field(default_factory=list)
+    user_correction: Optional[str] = None
+    existing_main: Optional[dict[str, Any]] = None
+
+
 class CalculateResponse(BaseModel):
+    chat_fallback: Optional[PlainChat] = None
+    verification: Optional[Verification] = None
+    inferred_information: list[dict[str, Any]] = Field(default_factory=list)
+    coverage_gaps: list[dict[str, Any]] = Field(default_factory=list)
     model: Optional[str] = None
     target_variable: Optional[str] = None
     factors: Optional[list[ModelFactor]] = None

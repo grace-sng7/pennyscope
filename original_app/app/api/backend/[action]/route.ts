@@ -1,7 +1,7 @@
 // Server-side proxy: browser -> Next.js -> Python backend.
 // Keeps the backend URL / key out of the browser and avoids CORS setup.
 // Set BACKEND_URL in .env.local (see env.example).
-const ALLOWED = new Set(['extract', 'correct', 'calculate']);
+const ALLOWED = new Set(['extract', 'correct', 'calculate', 'chat-fallback']);
 export const dynamic = 'force-dynamic';
 export const maxDuration = 420;
 

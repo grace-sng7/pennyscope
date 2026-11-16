@@ -145,6 +145,12 @@
 .savings-choice-input input { width: 180px; max-width: 100%; margin: 0; }
 .important-assumptions .savings-confirmed { color: var(--success-text); background: var(--success-background); padding: 5px 8px; border-radius: 6px; width: fit-content; }
 .scenario-controls h3 { font-size: 20px; margin: 0 0 16px; }
+.factor-details { display: block; min-width: 0; margin: 12px 0; }
+.factor-details > div { min-width: 0; margin: 0 0 14px; }
+.factor-details dt { color: var(--text-soft); font-size: 14px; }
+.factor-details dd { margin: 4px 0 0; font-size: 17px; overflow-wrap: break-word; word-break: normal; }
+.factor-details ul { margin: 4px 0; padding-left: 20px; }
+.factor-details li { margin: 4px 0; }
 .scenario-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 20px 0 0; padding-top: 15px; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 .scenario-summary dt { font-size: 14px; color: var(--text-soft); }
 .scenario-summary dd { font-size: 18px; font-weight: 500; margin: 5px 0 0; overflow-wrap: anywhere; }

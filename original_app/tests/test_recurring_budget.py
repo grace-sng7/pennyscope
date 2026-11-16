@@ -23,6 +23,8 @@ def fixture(frequency='biweekly',cost=90):
         'inputs':{'income_entries':json.loads(assumptions[0]['value']),'monthly_spending':1650,'spending_change':cost},
         'bindings':{'income_entries':'income_entries','monthly_spending':'monthly_expenses','spending_change':'recurring_cost'},
         'factors':factors,'results':{'scenario_monthly_surplus':210},'headline':'Fits ongoing budget','calculation':'Normalize income then subtract spending and new monthly charge.'}
+    for f in draft['factors']:
+        if f['role']=='derived':f['value']={'monthly_income':1950 if frequency=='biweekly' else 1800,'monthly_surplus':300 if frequency=='biweekly' else 150,'projected_surplus':(300 if frequency=='biweekly' else 150)-cost}[f['variable']]
     request={'original_question':QUESTION,'assumptions':assumptions,'extra_inputs':{},'answers':[],'parameters':{},'extraction_meta':{}}
     return draft,request
 

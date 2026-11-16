@@ -84,6 +84,7 @@ class DynamicModels(unittest.TestCase):
     def test_llm_draft_is_verified_inspected_and_formatted(self):
         o.CACHE.clear();o.PENDING_REVIEWS.clear()
         draft,facts=scenario('savings_goal',dict(solve_for='monthly_required',current_savings=500,months=4,target=1500),'monthly_contribution','$/month')
+        draft['results']={'monthly_contribution':250}
         req={'original_question':'How much must I save monthly?','assumptions':[dict(variable=k,**v) for k,v in facts.items()],'extra_inputs':{},'answers':[],'parameters':{},'extraction_meta':{}}
         with patch.object(o,'call_json',side_effect=[draft,{'decision':'approved','headline':'The required saving is verified.','detail':'Reviewed','assumptions':[]}]) as llm:
             result=o.calculate(req)

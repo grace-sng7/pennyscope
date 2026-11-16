@@ -1,0 +1,2473 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pennyscope — 16-case regression review</title><style>body{font:15px/1.5 system-ui,sans-serif;margin:0;color:#1b2429;background:#f7f8f9}main{max-width:1250px;margin:auto;padding:30px}h1{font-size:26px;margin:0 0 8px}h2{font-size:20px}h3{font-size:17px}h4{font-size:15px}.stats{display:flex;gap:45px;padding:20px 0;border-block:1px solid #cbd2d8;margin:20px 0}.stats strong{font-size:25px;display:block}.muted{color:#52616d}.bad{color:#9a3c22}.good{color:#275b4e}.banner{background:#fff4e4;padding:15px;border-left:3px solid #9a3c22}details{padding:8px 0}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,monospace;background:#eef1f3;padding:12px}.case{padding:16px 0;border-bottom:1px solid #ccd2d6}.columns{display:grid;grid-template-columns:1fr 1fr;gap:28px}.run{min-width:0}button{padding:7px 12px;margin-right:7px;border:1px solid #aaa;background:white;cursor:pointer}a{color:#275b70}li{margin:5px 0}@media(max-width:850px){.columns{grid-template-columns:1fr}.stats{gap:20px}}</style><main><h1>Pennyscope: 16-case regression review</h1><p class="muted">English Exemplars CSV · November 16, 2026 · live bedrock · 16 fresh conversations / 17 turns per full batch</p><div class="stats"><div><strong>8/16</strong>Baseline cases match</div><div><strong>15/16</strong>Final cases match</div><div><strong>16/17</strong>Final turns match</div><div><strong>1</strong>Explicit coverage limit</div></div><p>Only the English prompt and the specified B3 reply ($500) were submitted as user input. The exemplar answers stayed in the harness. Backend-generated state and fixed date/time metadata were passed normally. All four complete batches and their source snapshots are retained.</p><p>Comparison checks meanings, numbers, units, factor roles, required questions and coverage. Equivalent savings target aliases are accepted. A coverage response is not counted as a successful numerical calculation. Worksheet expectations were excluded.</p><h2>Shared base-input changes</h2><ul><li>Canonical collection encoding and units, with quoted evidence for contextual timing and method interpretation.</li><li>Pending question context and exact-source relocation for a bare follow-up.</li><li>Complete-spending checks; partial items do not satisfy a total.</li><li>Purchase today requires no contribution input. Exact nonmonthly schedules remain a separate coverage limit.</li><li>Native raw input plans for Main; named participants and whole-bill payments retained without fabricated facts.</li><li>Requested supporting results come from the same inspected calculation. No Worksheet component changes.</li></ul><h2>Remaining disagreement</h2><div class="banner"><b>D2: calculation / Inspector policy, outside the base-input-rule change.</b> The supplied inputs are complete. Python verifies 2 months and $15 total interest. Main returned a different interest value, and Inspector requested input with no missing facts, causing HTTP 422. No final answer was exposed. This is not an APR or other missing-input problem; no arithmetic or Inspector approval policy was changed to force a pass.</div><h2>Evidence and machine-readable records</h2><p><a href="comparison.json">Full comparison JSON</a> · <a href="comparison.csv">Per-turn CSV</a> · <a href="before.json">Raw baseline</a> · <a href="after_verified.json">Raw final batch</a></p><h2>Case-by-case review</h2><p><button onclick="filterCases(false)">All cases</button><button onclick="filterCases(true)">Final disagreements only</button></p><section class="case" data-failed="false"><details><summary><b>B1</b> · <span class="good">MATCH</span> · I take home $2,400 a month and spend $1,850 total each month. How much do I have left?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Budget &amp; Cash Flow\nbudget_cash_flow&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;income_entries, spending_entries, expense_categories\nexpense_adjustments, monthly_income, monthly_spending\nmonthly_surplus, recurring_cost, replaced_recurring_cost\nspending_change, income_change, spending_change_entries\nprojected_surplus, affordability_status\nAlias: monthly_expenses&quot;,
+  &quot;User goal and target&quot;: &quot;How much is left each month?\nTarget: monthly_surplus&quot;,
+  &quot;Given variables and values&quot;: &quot;monthly_income = $2,400/month\nmonthly_spending = $1,850/month&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Monthly income and total monthly spending. Both are supplied.&quot;,
+  &quot;Inference and calculation&quot;: &quot;monthly_surplus = $2,400 − $1,850 = $550/month.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show $550 left each month and the two amounts used.&quot;,
+  &quot;ID&quot;: &quot;B1&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> monthly_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_income&quot;,
+    &quot;value&quot;: 2400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I take home $2,400 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I take home $2,400 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_expenses&quot;,
+    &quot;value&quot;: 1850,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: spend $1,850 total each month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;spend $1,850 total each month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;value&quot;: 550.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_income&quot;,
+        &quot;value&quot;: 2400
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_expenses&quot;,
+        &quot;value&quot;: 1850
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Monthly surplus: $550.00 / month&quot;,
+  &quot;detail&quot;: &quot;This amount is calculated by subtracting total monthly expenses from monthly income&quot;
+}</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> monthly_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_income&quot;,
+    &quot;value&quot;: 2400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I take home $2,400 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I take home $2,400 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_expenses&quot;,
+    &quot;value&quot;: 1850,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: spend $1,850 total each month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;spend $1,850 total each month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;value&quot;: 550.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_income&quot;,
+        &quot;value&quot;: 2400
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_expenses&quot;,
+        &quot;value&quot;: 1850
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Monthly surplus: $550.00 / month&quot;,
+  &quot;detail&quot;: &quot;This amount is calculated by subtracting total monthly expenses from monthly take-home income&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>B2</b> · <span class="good">MATCH</span> · I usually have $300 left each month after expenses, including my current $45 phone plan. If I switch to a $70 plan, what will I have left?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Budget &amp; Cash Flow\nbudget_cash_flow&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;income_entries, spending_entries, expense_categories\nexpense_adjustments, monthly_income, monthly_spending\nmonthly_surplus, recurring_cost, replaced_recurring_cost\nspending_change, income_change, spending_change_entries\nprojected_surplus, affordability_status\nAlias: monthly_expenses&quot;,
+  &quot;User goal and target&quot;: &quot;How much will be left after changing phone plans?\nTarget: projected_surplus&quot;,
+  &quot;Given variables and values&quot;: &quot;monthly_surplus = $300/month, including the current plan\nreplaced_recurring_cost = $45/month\nrecurring_cost = $70 per plan billing period; new frequency is implicit&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Current monthly surplus and the two charge amounts for the replacement path.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Infer the $70 charge is monthly from the phone plan switch context.\nspending_change = $70 − $45 = $25/month.\nprojected_surplus = $300 − $25 = $275/month.&quot;,
+  &quot;Still missing&quot;: &quot;None for the monthly replacement reading.&quot;,
+  &quot;Next action&quot;: &quot;Infer the monthly replacement from context, then calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show $275 left per month and a $25 monthly increase. Use the stated surplus directly.&quot;,
+  &quot;ID&quot;: &quot;B2&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> projected_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;value&quot;: 300,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I usually have $300 left each month after expenses&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I usually have $300 left each month after expenses&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 70,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: If I switch to a $70 plan&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I switch to a $70 plan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 45,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: my current $45 phone plan&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;my current $45 phone plan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;calculation&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> projected_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;value&quot;: 300,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I usually have $300 left each month after expenses&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I usually have $300 left each month after expenses&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 70,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: If I switch to a $70 plan; Monthly frequency follows the current monthly charge being replaced.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I switch to a $70 plan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 45,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: my current $45 phone plan&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;my current $45 phone plan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 70,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: If I switch to a $70 plan; Monthly frequency follows the current monthly charge being replaced.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I switch to a $70 plan&quot;,
+        &quot;variable&quot;: null
+      }
+    ],
+    &quot;interpretation&quot;: &quot;Monthly frequency follows the current monthly charge being replaced.&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;projected_surplus&quot;,
+    &quot;value&quot;: 275.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_surplus&quot;,
+        &quot;value&quot;: 300
+      },
+      {
+        &quot;factor_id&quot;: &quot;recurring_cost&quot;,
+        &quot;value&quot;: 70
+      },
+      {
+        &quot;factor_id&quot;: &quot;replaced_recurring_cost&quot;,
+        &quot;value&quot;: 45
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;affordability_status&quot;,
+    &quot;value&quot;: &quot;Yes&quot;,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_surplus&quot;,
+        &quot;value&quot;: 300
+      },
+      {
+        &quot;factor_id&quot;: &quot;recurring_cost&quot;,
+        &quot;value&quot;: 70
+      },
+      {
+        &quot;factor_id&quot;: &quot;replaced_recurring_cost&quot;,
+        &quot;value&quot;: 45
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Projected surplus: $275.00 / month&quot;,
+  &quot;detail&quot;: &quot;Based on the reviewed inputs and assumptions shown here.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>B3</b> · <span class="good">MATCH</span> · I want to move to a $1,400/month apartment in February. I currently pay $1,000 in rent. Can I swing it?</summary><p><b>Specified second turn:</b> $500</p><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Budget &amp; Cash Flow\nbudget_cash_flow&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;income_entries, spending_entries, expense_categories\nexpense_adjustments, monthly_income, monthly_spending\nmonthly_surplus, recurring_cost, replaced_recurring_cost\nspending_change, income_change, spending_change_entries\nprojected_surplus, affordability_status\nAlias: monthly_expenses&quot;,
+  &quot;User goal and target&quot;: &quot;Can I afford the replacement rent?\nTarget: affordability_status\nSupporting result: projected_surplus&quot;,
+  &quot;Given variables and values&quot;: &quot;replaced_recurring_cost = $1,000/month\nrecurring_cost = $1,400/month\nScenario context: starts in February&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Two rents and a baseline: Current Monthly Surplus, or Monthly Income plus Total Monthly Spending. The baseline includes current rent.&quot;,
+  &quot;Inference and calculation&quot;: &quot;spending_change = $1,400 − $1,000 = $400/month. The baseline cannot be derived from rent alone.\nAfter the reply, projected_surplus = $500 − $400 = $100/month.&quot;,
+  &quot;Still missing&quot;: &quot;monthly_surplus or equivalent complete budget inputs.&quot;,
+  &quot;Next action&quot;: &quot;Ask one question: “How much do you usually have left each month after paying your current rent and other expenses?”\nTest reply in the same chat: $500.&quot;,
+  &quot;Expected behavior&quot;: &quot;First show the $400/month increase and the question. After the reply, show that the rent fits the stated budget with $100/month left.&quot;,
+  &quot;ID&quot;: &quot;B3&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 1400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to move to a $1,400/month apartment&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to move to a $1,400/month apartment&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I currently pay $1,000 in rent&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I currently pay $1,000 in rent&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;label&quot;: &quot;How much do you have left each month after all current expenses, including your current rent?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;How much do you have left each month after all current expenses, including your current rent?&quot;</pre></details><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;input_checks&quot;,
+    &quot;message&quot;: &quot;The prompt supports a 400/month increase, but the initial clarification response did not expose that supported calculation.&quot;
+  }
+]</pre><h4>Turn 2 · needs_input</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 1400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to move to a $1,400/month apartment&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to move to a $1,400/month apartment&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I currently pay $1,000 in rent&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I currently pay $1,000 in rent&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;label&quot;: &quot;How much do you have left each month after all current expenses, including your current rent?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;How much do you have left each month after all current expenses, including your current rent?&quot;</pre></details><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;input_checks&quot;,
+    &quot;message&quot;: &quot;Expected calculation; got needs_input, required inputs [{&#x27;variable&#x27;: &#x27;monthly_surplus&#x27;, &#x27;label&#x27;: &#x27;How much do you have left each month after all current expenses, including your current rent?&#x27;, &#x27;unit&#x27;: None, &#x27;help&#x27;: None, &#x27;input_type&#x27;: &#x27;number&#x27;}].&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 1400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to move to a $1,400/month apartment&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to move to a $1,400/month apartment&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I currently pay $1,000 in rent&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I currently pay $1,000 in rent&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;spending_change&quot;,
+    &quot;value&quot;: 400.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;New charge minus replaced charge.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;recurring_cost&quot;,
+        &quot;value&quot;: 1400
+      },
+      {
+        &quot;factor_id&quot;: &quot;replaced_recurring_cost&quot;,
+        &quot;value&quot;: 1000
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;label&quot;: &quot;The replacement changes spending by $400.00 per month. How much do you have left each month after all current expenses, including your current rent?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;The replacement changes spending by $400.00 per month. How much do you have left each month after all current expenses, including your current rent?&quot;</pre></details><h4>Turn 2 · conditional</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;recurring_cost&quot;,
+    &quot;value&quot;: 1400,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to move to a $1,400/month apartment&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to move to a $1,400/month apartment&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;replaced_recurring_cost&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I currently pay $1,000 in rent&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I currently pay $1,000 in rent&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_surplus&quot;,
+    &quot;value&quot;: 500,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;correction: $500&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;correction&quot;,
+        &quot;quote&quot;: &quot;$500&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;affordability_status&quot;,
+    &quot;value&quot;: &quot;Yes&quot;,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_surplus&quot;,
+        &quot;value&quot;: 500
+      },
+      {
+        &quot;factor_id&quot;: &quot;recurring_cost&quot;,
+        &quot;value&quot;: 1400
+      },
+      {
+        &quot;factor_id&quot;: &quot;replaced_recurring_cost&quot;,
+        &quot;value&quot;: 1000
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;projected_surplus&quot;,
+    &quot;value&quot;: 100.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;monthly_surplus&quot;,
+        &quot;value&quot;: 500
+      },
+      {
+        &quot;factor_id&quot;: &quot;recurring_cost&quot;,
+        &quot;value&quot;: 1400
+      },
+      {
+        &quot;factor_id&quot;: &quot;replaced_recurring_cost&quot;,
+        &quot;value&quot;: 1000
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Affordability status: Yes&quot;,
+  &quot;detail&quot;: &quot;Your monthly surplus is enough to cover the increased rent, resulting in a positive projected surplus.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>B4</b> · <span class="good">MATCH</span> · I take home $2,000 a month. My car insurance is $150 a month. How much do I have left after all my expenses?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Budget &amp; Cash Flow\nbudget_cash_flow&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;income_entries, spending_entries, expense_categories\nexpense_adjustments, monthly_income, monthly_spending\nmonthly_surplus, recurring_cost, replaced_recurring_cost\nspending_change, income_change, spending_change_entries\nprojected_surplus, affordability_status\nAlias: monthly_expenses&quot;,
+  &quot;User goal and target&quot;: &quot;How much is left after all expenses?\nTarget: monthly_surplus&quot;,
+  &quot;Given variables and values&quot;: &quot;monthly_income = $2,000/month\nexpense_categories = car insurance, $150/month only&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Monthly Income and Total Monthly Spending, or a complete equivalent spending breakdown.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Car insurance can be retained as an individual expense. Total Monthly Spending cannot be derived from this partial list.&quot;,
+  &quot;Still missing&quot;: &quot;monthly_spending. A complete spending breakdown would also satisfy this input.&quot;,
+  &quot;Next action&quot;: &quot;Ask one question: “About how much do you spend in total each month, including car insurance?”&quot;,
+  &quot;Expected behavior&quot;: &quot;Keep the $150 car insurance line item and leave monthly_surplus blank until the user supplies the total.&quot;,
+  &quot;ID&quot;: &quot;B4&quot;
+}</pre></details><p class="muted">Runtime retains car insurance in spending_entries rather than Sheet expense_categories. The input checker treats it as partial, so it does not satisfy complete monthly spending.</p><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> monthly_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_income&quot;,
+    &quot;value&quot;: 2000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I take home $2,000 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I take home $2,000 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;spending_entries&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;amount&quot;: 150,
+        &quot;frequency&quot;: &quot;monthly&quot;
+      }
+    ],
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: My car insurance is $150 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;My car insurance is $150 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_spending&quot;,
+    &quot;label&quot;: &quot;Total monthly spending&quot;,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: null
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;Please clarify these details before a result can be reviewed.&quot;</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> budget_cash_flow · <b>Target:</b> monthly_surplus</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_income&quot;,
+    &quot;value&quot;: 2000,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I take home $2,000 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I take home $2,000 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;spending_entries&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;amount&quot;: 150,
+        &quot;frequency&quot;: &quot;monthly&quot;
+      }
+    ],
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: My car insurance is $150 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;My car insurance is $150 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_spending&quot;,
+    &quot;label&quot;: &quot;What is your monthly spending or spending entries or fixed costs and variable costs?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your monthly spending or spending entries or fixed costs and variable costs?&quot;</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>S1</b> · <span class="good">MATCH</span> · I’ve set aside $200 for a trip and want $1,200 in five months. How much should I put aside each month?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Savings &amp; One Time Affordability\nsavings_goal&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;current_savings, available_savings, savings_floor_to_keep\ngoal_amount, goal_deadline, goal_description\nmonthly_contribution, monthly_income, monthly_expenses\nspending_entries, contribution_months, monthly_surplus\nprojected_savings, required_monthly_savings, months_to_goal\naffordability_status, shortfall\nAliases\ntarget_amount, monthly_spending, monthly_savings\nmonths, target&quot;,
+  &quot;User goal and target&quot;: &quot;How much must I set aside each month?\nTarget: required_monthly_savings&quot;,
+  &quot;Given variables and values&quot;: &quot;available_savings = $200\ngoal_amount = $1,200\ngoal_deadline = 5 months\ngoal_description = trip&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Available Savings, Goal Amount, and a positive contribution horizon.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Savings gap = $1,200 − $200 = $1,000.\nrequired_monthly_savings = $1,000 ÷ 5 = $200/month.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show a required contribution of $200/month.&quot;,
+  &quot;ID&quot;: &quot;S1&quot;
+}</pre></details><p class="muted">Equivalent target ID: runtime monthly_contribution vs Sheet required_monthly_savings.</p><p class="muted">Runtime uses current_savings for the explicitly dedicated trip fund; Sheet calls it available_savings. The source states the funds are set aside for this goal.</p><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> monthly_contribution</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I’ve set aside $200 for a trip&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I’ve set aside $200 for a trip&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_amount&quot;,
+    &quot;value&quot;: 1200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: want $1,200 in five months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;want $1,200 in five months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;value&quot;: 5,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: want $1,200 in five months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;want $1,200 in five months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_contribution&quot;,
+    &quot;value&quot;: 200.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 200
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_amount&quot;,
+        &quot;value&quot;: 1200
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_deadline&quot;,
+        &quot;value&quot;: 5
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Monthly contribution: $200.00 / month&quot;,
+  &quot;detail&quot;: &quot;To reach your savings goal, you need to set aside a fixed amount each month&quot;
+}</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> monthly_contribution</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I’ve set aside $200 for a trip&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I’ve set aside $200 for a trip&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_amount&quot;,
+    &quot;value&quot;: 1200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: want $1,200 in five months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;want $1,200 in five months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;value&quot;: 5,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: in five months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;in five months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;monthly_contribution&quot;,
+    &quot;value&quot;: 200.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 200
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_amount&quot;,
+        &quot;value&quot;: 1200
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_deadline&quot;,
+        &quot;value&quot;: 5
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Monthly contribution: $200.00 / month&quot;,
+  &quot;detail&quot;: &quot;To reach your goal of $1,200 in 5 months, you should set aside $200 each month, considering you already have $200 saved&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>S2</b> · <span class="good">MATCH</span> · I have $300 in my travel fund and add $150 every month. How much will be in the fund in four months?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Savings &amp; One Time Affordability\nsavings_goal&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;current_savings, available_savings, savings_floor_to_keep\ngoal_amount, goal_deadline, goal_description\nmonthly_contribution, monthly_income, monthly_expenses\nspending_entries, contribution_months, monthly_surplus\nprojected_savings, required_monthly_savings, months_to_goal\naffordability_status, shortfall\nAliases\ntarget_amount, monthly_spending, monthly_savings\nmonths, target&quot;,
+  &quot;User goal and target&quot;: &quot;What will the travel fund contain in four months?\nTarget: projected_savings&quot;,
+  &quot;Given variables and values&quot;: &quot;current_savings = $300 in the travel fund\nmonthly_contribution = $150/month\ngoal_deadline = 4 months&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Starting fund balance, Monthly Contribution, and contribution horizon.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Future contributions = $150 × 4 = $600.\nprojected_savings = $300 + $600 = $900.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show $900 after four months.&quot;,
+  &quot;ID&quot;: &quot;S2&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> projected_savings</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 300,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have $300 in my travel fund&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have $300 in my travel fund&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_contribution&quot;,
+    &quot;value&quot;: 150,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: add $150 every month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;add $150 every month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;months&quot;,
+    &quot;value&quot;: 4,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: in four months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;in four months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;projected_savings&quot;,
+    &quot;value&quot;: 900.0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 300
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_contribution&quot;,
+        &quot;value&quot;: 150
+      },
+      {
+        &quot;factor_id&quot;: &quot;months&quot;,
+        &quot;value&quot;: 4
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Projected savings: $900.00&quot;,
+  &quot;detail&quot;: &quot;Based on your initial savings and monthly contributions, your travel fund will grow to $900 in 4 months&quot;
+}</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> projected_savings</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 300,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have $300 in my travel fund&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have $300 in my travel fund&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_contribution&quot;,
+    &quot;value&quot;: 150,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: add $150 every month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;add $150 every month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;value&quot;: 4,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: in four months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;in four months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;projected_savings&quot;,
+    &quot;value&quot;: 900.0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 300
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_deadline&quot;,
+        &quot;value&quot;: 4
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_contribution&quot;,
+        &quot;value&quot;: 150
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Projected savings: $900.00&quot;,
+  &quot;detail&quot;: &quot;This amount is based on your initial savings and monthly contributions.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>S3</b> · <span class="good">MATCH</span> · I have $750 set aside just for a laptop. The laptop costs $900 and I want to buy it today. Can I afford it with that money?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Savings &amp; One Time Affordability\nsavings_goal&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;current_savings, available_savings, savings_floor_to_keep\ngoal_amount, goal_deadline, goal_description\nmonthly_contribution, monthly_income, monthly_expenses\nspending_entries, contribution_months, monthly_surplus\nprojected_savings, required_monthly_savings, months_to_goal\naffordability_status, shortfall\nAliases\ntarget_amount, monthly_spending, monthly_savings\nmonths, target&quot;,
+  &quot;User goal and target&quot;: &quot;Can I buy the laptop today with the money set aside?\nTarget: affordability_status\nSupporting result: shortfall&quot;,
+  &quot;Given variables and values&quot;: &quot;available_savings = $750\ngoal_amount = $900\ngoal_deadline = today\ngoal_description = laptop&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Available Savings, Goal Amount, and purchase timing. Today means zero future contributions.&quot;,
+  &quot;Inference and calculation&quot;: &quot;projected_savings = $750.\nshortfall = $900 − $750 = $150.&quot;,
+  &quot;Still missing&quot;: &quot;No financial fact is missing. The supplied registry still lists a contribution input for this target, so verify whether the live flow skips it for a purchase today.&quot;,
+  &quot;Next action&quot;: &quot;Calculate using available savings. Flag a coverage issue if the live flow demands a monthly contribution.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show that the set aside funds fall $150 short today.&quot;,
+  &quot;ID&quot;: &quot;S3&quot;
+}</pre></details><p class="muted">The Sheet explicitly anticipated a possible purchase-today coverage/input gap. It is now handled as zero future deposits; no contribution question.</p><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 750,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have $750 set aside just for a laptop&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have $750 set aside just for a laptop&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_amount&quot;,
+    &quot;value&quot;: 900,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: The laptop costs $900&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;The laptop costs $900&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;available_savings&quot;,
+    &quot;value&quot;: 750,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have $750 set aside just for a laptop&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have $750 set aside just for a laptop&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;label&quot;: &quot;What is your goal deadline or contribution months?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your goal deadline or contribution months?&quot;</pre></details><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;input_checks&quot;,
+    &quot;message&quot;: &quot;Expected calculation; got needs_input, required inputs [{&#x27;variable&#x27;: &#x27;goal_deadline&#x27;, &#x27;label&#x27;: &#x27;What is your goal deadline or contribution months?&#x27;, &#x27;unit&#x27;: None, &#x27;help&#x27;: None, &#x27;input_type&#x27;: &#x27;number&#x27;}].&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> affordability_status</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 750,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have $750 set aside just for a laptop&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have $750 set aside just for a laptop&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_amount&quot;,
+    &quot;value&quot;: 900,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: The laptop costs $900&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;The laptop costs $900&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to buy it today; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to buy it today&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;goal_deadline&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: I want to buy it today; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I want to buy it today&quot;,
+        &quot;variable&quot;: null
+      }
+    ],
+    &quot;interpretation&quot;: &quot;Contextual input interpretation supported by the quoted user facts.&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;affordability_status&quot;,
+    &quot;value&quot;: &quot;No&quot;,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 750
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_amount&quot;,
+        &quot;value&quot;: 900
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_deadline&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;shortfall&quot;,
+    &quot;value&quot;: 150.0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;current_savings&quot;,
+        &quot;value&quot;: 750
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_amount&quot;,
+        &quot;value&quot;: 900
+      },
+      {
+        &quot;factor_id&quot;: &quot;goal_deadline&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Affordability status: No&quot;,
+  &quot;detail&quot;: &quot;Your current savings are less than the cost of the laptop&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>S4</b> · <span class="good">MATCH</span> · My trip fund has $100. I’ll add $60 at the end of every week for the next eight weeks. How much will I have after the eighth deposit?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Savings &amp; One Time Affordability\nsavings_goal&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;current_savings, available_savings, savings_floor_to_keep\ngoal_amount, goal_deadline, goal_description\nmonthly_contribution, monthly_income, monthly_expenses\nspending_entries, contribution_months, monthly_surplus\nprojected_savings, required_monthly_savings, months_to_goal\naffordability_status, shortfall\nAliases\ntarget_amount, monthly_spending, monthly_savings\nmonths, target&quot;,
+  &quot;User goal and target&quot;: &quot;What is the balance immediately after eight weekly deposits?\nTarget: projected_savings&quot;,
+  &quot;Given variables and values&quot;: &quot;current_savings = $100\nWeekly deposit = $60\nDeposit count = 8\nThe supplied savings registry has no exact IDs for the last two facts.&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Starting Savings, an amount per deposit, and a count for that same period. This question supplies all three.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Total deposits = $60 × 8 = $480.\nBenchmark projected_savings = $100 + $480 = $580.&quot;,
+  &quot;Still missing&quot;: &quot;No information is missing. Coverage check: exact weekly schedules are outside the monthly input fields shown in the supplied registry.&quot;,
+  &quot;Next action&quot;: &quot;Calculate if exact weekly schedules are supported. Otherwise report a coverage gap.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show $580 after eight deposits when supported. Preserve the weekly schedule and exact count.&quot;,
+  &quot;ID&quot;: &quot;S4&quot;
+}</pre></details><p class="muted">The raw schedule uses the newly added contribution_entries factor because the Sheet lists no exact amount/count IDs. Sheet benchmark is 580 after eight deposits. Runtime preserves amount=60, frequency=weekly and count=8 and reports the permitted monthly-model coverage gap. No user fact is missing.</p><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> projected_savings</p><details><summary>Given Information</summary><pre>[]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The selected factors did not match the selected model registry. Your information is preserved; please retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;extraction&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The selected factors did not match the selected model registry. Your information is preserved; please retry.&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · unsupported</h4><p><b>Selected:</b> savings_goal · <b>Target:</b> projected_savings</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;current_savings&quot;,
+    &quot;value&quot;: 100,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: My trip fund has $100&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;My trip fund has $100&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;contribution_entries&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;amount&quot;: 60,
+        &quot;frequency&quot;: &quot;weekly&quot;,
+        &quot;count&quot;: 8
+      }
+    ],
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I’ll add $60 at the end of every week for the next eight weeks&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I’ll add $60 at the end of every week for the next eight weeks&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[
+  {
+    &quot;reason&quot;: &quot;Exact periodic deposit count is not supported by the monthly calculator.&quot;,
+    &quot;supporting_facts&quot;: [
+      &quot;contribution_entries&quot;
+    ]
+  }
+]</pre></details><details open><summary>Result or next question</summary><pre>&quot;Exact nonmonthly deposit schedules are outside the current monthly savings model. The supplied schedule is complete; no additional user input is needed.&quot;</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>BL1</b> · <span class="good">MATCH</span> · Dinner was $96 total, including tax and tip. There are three of us and we’re splitting it evenly. What does each person owe?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Bill Splitting\nbill_split&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;total_bill, participants, split_method\nitems, shared_items, tax_amount\ntip_amount, split_weights, amounts_paid\namounts_owed, settlements\nAliases\ntotal, people, method\ntax, tip, weights&quot;,
+  &quot;User goal and target&quot;: &quot;What does each person owe?\nTarget: amounts_owed&quot;,
+  &quot;Given variables and values&quot;: &quot;total_bill = $96, including tax and tip\nparticipants = 3\nsplit_method = equal&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Total Bill, Participants, and Split Method.&quot;,
+  &quot;Inference and calculation&quot;: &quot;amounts_owed = $96 ÷ 3 = $32 each.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show $32 per person using the all inclusive total.&quot;,
+  &quot;ID&quot;: &quot;BL1&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 96,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Dinner was $96 total, including tax and tip.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Dinner was $96 total, including tax and tip.&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: 3,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: There are three of us&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There are three of us&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;value&quot;: &quot;equal&quot;,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: we’re splitting it evenly&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;we’re splitting it evenly&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;calculation&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 96,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Dinner was $96 total, including tax and tip.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Dinner was $96 total, including tax and tip.&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: 3,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: There are three of us&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There are three of us&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;value&quot;: &quot;equal&quot;,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: we’re splitting it evenly&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;we’re splitting it evenly&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;amounts_owed&quot;,
+    &quot;value&quot;: {
+      &quot;Person 1&quot;: &quot;32.00&quot;,
+      &quot;Person 2&quot;: &quot;32.00&quot;,
+      &quot;Person 3&quot;: &quot;32.00&quot;
+    },
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;split_method&quot;,
+        &quot;value&quot;: &quot;equal&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;participants&quot;,
+        &quot;value&quot;: 3
+      },
+      {
+        &quot;factor_id&quot;: &quot;total_bill&quot;,
+        &quot;value&quot;: 96
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Amounts owed: See the breakdown below.&quot;,
+  &quot;detail&quot;: &quot;The total dinner bill is split evenly among three people&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>BL2</b> · <span class="good">MATCH</span> · Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share. There’s no tax or tip. What do we each owe?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Bill Splitting\nbill_split&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;total_bill, participants, split_method\nitems, shared_items, tax_amount\ntip_amount, split_weights, amounts_paid\namounts_owed, settlements\nAliases\ntotal, people, method\ntax, tip, weights&quot;,
+  &quot;User goal and target&quot;: &quot;What do Maya and I each owe?\nTarget: amounts_owed&quot;,
+  &quot;Given variables and values&quot;: &quot;participants = Maya and the user\nshared_items = $24 pizza shared equally\nitems = $6 drink for the user only\ntax_amount = $0\ntip_amount = $0&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Participants, item amounts, and ownership or sharing for each item. Tax and tip are explicitly zero.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Infer split_method = itemized from the stated assignments.\nPizza share = $24 ÷ 2 = $12 each.\namounts_owed = user $12 + $6 = $18, Maya $12.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Infer the allocation method, then calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show the user owes $18 and Maya owes $12, with the drink assigned to the user.&quot;,
+  &quot;ID&quot;: &quot;BL2&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The selected factors did not match the selected model registry. Your information is preserved; please retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;extraction&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The selected factors did not match the selected model registry. Your information is preserved; please retry.&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: [
+      &quot;Maya&quot;,
+      &quot;me&quot;
+    ],
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Maya and I&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Maya and I&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;value&quot;: &quot;itemized&quot;,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share. There’s no tax or tip. What do we each owe?; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share. There’s no tax or tip. What do we each owe?&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;items&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;amount&quot;: 24,
+        &quot;shared_by&quot;: [
+          &quot;Maya&quot;,
+          &quot;me&quot;
+        ]
+      },
+      {
+        &quot;amount&quot;: 6,
+        &quot;shared_by&quot;: [
+          &quot;me&quot;
+        ]
+      }
+    ],
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;tax_amount&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: There’s no tax or tip; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There’s no tax or tip&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;tip_amount&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: There’s no tax or tip; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There’s no tax or tip&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;value&quot;: &quot;itemized&quot;,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share. There’s no tax or tip. What do we each owe?; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Maya and I split a $24 pizza evenly. I also had a $6 drink that she didn’t share. There’s no tax or tip. What do we each owe?&quot;,
+        &quot;variable&quot;: null
+      }
+    ],
+    &quot;interpretation&quot;: &quot;Contextual input interpretation supported by the quoted user facts.&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;tax_amount&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: There’s no tax or tip; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There’s no tax or tip&quot;,
+        &quot;variable&quot;: null
+      }
+    ],
+    &quot;interpretation&quot;: &quot;Contextual input interpretation supported by the quoted user facts.&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;tip_amount&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;question: There’s no tax or tip; Contextual input interpretation supported by the quoted user facts.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;There’s no tax or tip&quot;,
+        &quot;variable&quot;: null
+      }
+    ],
+    &quot;interpretation&quot;: &quot;Contextual input interpretation supported by the quoted user facts.&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 30.0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;split_method&quot;,
+        &quot;value&quot;: &quot;itemized&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;participants&quot;,
+        &quot;value&quot;: &quot;[\&quot;Maya\&quot;, \&quot;me\&quot;]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;items&quot;,
+        &quot;value&quot;: &quot;[{\&quot;amount\&quot;: 24, \&quot;shared_by\&quot;: [\&quot;Maya\&quot;, \&quot;me\&quot;]}, {\&quot;amount\&quot;: 6, \&quot;shared_by\&quot;: [\&quot;me\&quot;]}]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;tax_amount&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;tip_amount&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;amounts_owed&quot;,
+    &quot;value&quot;: {
+      &quot;Maya&quot;: &quot;12.00&quot;,
+      &quot;me&quot;: &quot;18.00&quot;
+    },
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;split_method&quot;,
+        &quot;value&quot;: &quot;itemized&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;participants&quot;,
+        &quot;value&quot;: &quot;[\&quot;Maya\&quot;, \&quot;me\&quot;]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;items&quot;,
+        &quot;value&quot;: &quot;[{\&quot;amount\&quot;: 24, \&quot;shared_by\&quot;: [\&quot;Maya\&quot;, \&quot;me\&quot;]}, {\&quot;amount\&quot;: 6, \&quot;shared_by\&quot;: [\&quot;me\&quot;]}]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;tax_amount&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;tip_amount&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Amounts owed: See the breakdown below.&quot;,
+  &quot;detail&quot;: &quot;Based on the reviewed inputs and assumptions shown here.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>BL3</b> · <span class="good">MATCH</span> · Alex paid the whole $90 dinner bill. Alex, Jamie, and I agreed to split it evenly. Who should pay whom, and how much?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Bill Splitting\nbill_split&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;total_bill, participants, split_method\nitems, shared_items, tax_amount\ntip_amount, split_weights, amounts_paid\namounts_owed, settlements\nAliases\ntotal, people, method\ntax, tip, weights&quot;,
+  &quot;User goal and target&quot;: &quot;Who reimburses whom, and how much?\nTarget: settlements&quot;,
+  &quot;Given variables and values&quot;: &quot;total_bill = $90\nparticipants = Alex, Jamie, and the user\nsplit_method = equal\namounts_paid = Alex $90 (paid the whole bill)&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Amounts Paid and Amounts Owed, or sufficient inputs to calculate Amounts Owed first.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Infer Jamie and the user each paid $0 from “Alex paid the whole bill.”\namounts_owed = $90 ÷ 3 = $30 each.\nNet positions: Alex +$60, Jamie −$30, user −$30.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Derive amounts owed, then calculate transfers.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show Jamie pays Alex $30 and the user pays Alex $30.&quot;,
+  &quot;ID&quot;: &quot;BL3&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> bill_split · <b>Target:</b> settlements</p><details><summary>Given Information</summary><pre>[]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The selected factors did not match the selected model registry. Your information is preserved; please retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;extraction&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The selected factors did not match the selected model registry. Your information is preserved; please retry.&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> bill_split · <b>Target:</b> settlements</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 90,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: the whole $90 dinner bill&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;the whole $90 dinner bill&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: [
+      &quot;Alex&quot;,
+      &quot;Jamie&quot;,
+      &quot;me&quot;
+    ],
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Alex, Jamie, and I&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Alex, Jamie, and I&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;value&quot;: &quot;equal&quot;,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: split it evenly&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;split it evenly&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;amounts_paid&quot;,
+    &quot;value&quot;: {
+      &quot;Alex&quot;: 90
+    },
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Alex paid the whole $90 dinner bill&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Alex paid the whole $90 dinner bill&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;settlements&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;from&quot;: &quot;Jamie&quot;,
+        &quot;to&quot;: &quot;Alex&quot;,
+        &quot;amount&quot;: &quot;30.00&quot;
+      },
+      {
+        &quot;from&quot;: &quot;me&quot;,
+        &quot;to&quot;: &quot;Alex&quot;,
+        &quot;amount&quot;: &quot;30.00&quot;
+      }
+    ],
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;split_method&quot;,
+        &quot;value&quot;: &quot;equal&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;participants&quot;,
+        &quot;value&quot;: &quot;[\&quot;Alex\&quot;, \&quot;Jamie\&quot;, \&quot;me\&quot;]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;total_bill&quot;,
+        &quot;value&quot;: 90
+      },
+      {
+        &quot;factor_id&quot;: &quot;amounts_paid&quot;,
+        &quot;value&quot;: &quot;{\&quot;Alex\&quot;: 90}&quot;
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;amounts_owed&quot;,
+    &quot;value&quot;: {
+      &quot;Alex&quot;: &quot;30.00&quot;,
+      &quot;Jamie&quot;: &quot;30.00&quot;,
+      &quot;me&quot;: &quot;30.00&quot;
+    },
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;split_method&quot;,
+        &quot;value&quot;: &quot;equal&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;participants&quot;,
+        &quot;value&quot;: &quot;[\&quot;Alex\&quot;, \&quot;Jamie\&quot;, \&quot;me\&quot;]&quot;
+      },
+      {
+        &quot;factor_id&quot;: &quot;total_bill&quot;,
+        &quot;value&quot;: 90
+      },
+      {
+        &quot;factor_id&quot;: &quot;amounts_paid&quot;,
+        &quot;value&quot;: &quot;{\&quot;Alex\&quot;: 90}&quot;
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Settlements: See the breakdown below.&quot;,
+  &quot;detail&quot;: &quot;Since Alex paid the whole bill, Jamie and you owe Alex your share of the bill.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>BL4</b> · <span class="good">MATCH</span> · Three of us got an $84 dinner bill, but we ordered different things. How much should each of us pay?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Bill Splitting\nbill_split&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;total_bill, participants, split_method\nitems, shared_items, tax_amount\ntip_amount, split_weights, amounts_paid\namounts_owed, settlements\nAliases\ntotal, people, method\ntax, tip, weights&quot;,
+  &quot;User goal and target&quot;: &quot;How much should each person pay?\nTarget: amounts_owed&quot;,
+  &quot;Given variables and values&quot;: &quot;total_bill = $84\nparticipants = 3\nContext: they ordered different items.&quot;,
+  &quot;Required inputs for this target&quot;: &quot;First resolve Split Method. Equal uses the total and count. Itemized also needs prices and who had each item.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Ordering different items does not establish an allocation agreement. The facts are sufficient only if the user confirms an equal split.&quot;,
+  &quot;Still missing&quot;: &quot;split_method. If itemized is chosen, item details are needed next.&quot;,
+  &quot;Next action&quot;: &quot;Ask one question: “Do you want to split it evenly or by what each person ordered?”&quot;,
+  &quot;Expected behavior&quot;: &quot;Wait to show shares until the split method and its required inputs are known.&quot;,
+  &quot;ID&quot;: &quot;BL4&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 84,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: an $84 dinner bill&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;an $84 dinner bill&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: 3,
+    &quot;unit&quot;: null,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Three of us&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Three of us&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;label&quot;: &quot;What is your split method?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;text&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your split method?&quot;</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> bill_split · <b>Target:</b> amounts_owed</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;total_bill&quot;,
+    &quot;value&quot;: 84,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: an $84 dinner bill&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;an $84 dinner bill&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;participants&quot;,
+    &quot;value&quot;: 3,
+    &quot;unit&quot;: &quot;text&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: Three of us&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;Three of us&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;split_method&quot;,
+    &quot;label&quot;: &quot;What is your split method?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;text&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your split method?&quot;</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>D1</b> · <span class="good">MATCH</span> · I owe $1,200 on a loan at 0% interest. If I pay $200 a month and there are no fees, how long until it’s paid off?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Debt Repayment\ndebt_repayment&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;principal_balance, apr, monthly_payment\npayoff_months, monthly_interest, total_interest\ntotal_repayment, estimated_payoff_months, required_monthly_payment\nAliases\nbalance&quot;,
+  &quot;User goal and target&quot;: &quot;How many months until the loan is paid off?\nTarget: estimated_payoff_months&quot;,
+  &quot;Given variables and values&quot;: &quot;principal_balance = $1,200\napr = 0%\nmonthly_payment = $200/month\nContext: no fees.&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Principal Balance, APR, and Monthly Payment. Zero APR is a supplied value.&quot;,
+  &quot;Inference and calculation&quot;: &quot;monthly_interest = $0.\nestimated_payoff_months = $1,200 ÷ $200 = 6.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show six months to pay off the loan. If interest is shown, it is $0.&quot;,
+  &quot;ID&quot;: &quot;D1&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 1200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $1,200 on a loan&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $1,200 on a loan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: 0% interest&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;0% interest&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: If I pay $200 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I pay $200 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;estimated_payoff_months&quot;,
+    &quot;value&quot;: 6,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1200
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 200
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Estimated payoff months: 6 months&quot;,
+  &quot;detail&quot;: &quot;Based on the reviewed inputs and assumptions shown here.&quot;
+}</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 1200,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $1,200 on a loan&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $1,200 on a loan&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: 0% interest&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;0% interest&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: If I pay $200 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I pay $200 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;estimated_payoff_months&quot;,
+    &quot;value&quot;: 6,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1200
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 200
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;total_interest&quot;,
+    &quot;value&quot;: 0.0,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1200
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 200
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Estimated payoff months: 6 months&quot;,
+  &quot;detail&quot;: &quot;Based on the reviewed inputs and assumptions shown here.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="true"><details><summary><b>D2</b> · <span class="bad">DIFFERENT</span> · I have a $1,000 balance at a fixed 12% APR. Interest is charged monthly before each payment. If I pay $510 a month and make no new charges, how long will payoff take and how much interest will I pay?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Debt Repayment\ndebt_repayment&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;principal_balance, apr, monthly_payment\npayoff_months, monthly_interest, total_interest\ntotal_repayment, estimated_payoff_months, required_monthly_payment\nAliases\nbalance&quot;,
+  &quot;User goal and target&quot;: &quot;How long will payoff take and how much will interest cost?\nTargets: estimated_payoff_months and total_interest&quot;,
+  &quot;Given variables and values&quot;: &quot;principal_balance = $1,000\napr = 12%\nmonthly_payment = $510/month\nContext: monthly interest before payment, no new charges.&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Principal Balance, APR, and Monthly Payment for the same repayment schedule.&quot;,
+  &quot;Inference and calculation&quot;: &quot;Monthly rate = 12 ÷ 1,200 = 1%.\nMonth 1: $10 interest, $500 balance after payment.\nMonth 2: $5 interest, $505 final payment.\ntotal_interest = $15.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate both outputs from one schedule.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show two months, $15 total interest, and a $505 final payment if the schedule is shown.&quot;,
+  &quot;ID&quot;: &quot;D2&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have a $1,000 balance&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have a $1,000 balance&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 12,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: at a fixed 12% APR&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;at a fixed 12% APR&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 510,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: If I pay $510 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I pay $510 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;estimated_payoff_months&quot;,
+    &quot;value&quot;: 2,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1000
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 12
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 510
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Estimated payoff months: 2 months&quot;,
+  &quot;detail&quot;: &quot;Based on the reviewed inputs and assumptions shown here.&quot;
+}</pre></details><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;target_selection&quot;,
+    &quot;message&quot;: &quot;One schedule calculated both outputs, but the response omitted one requested output (time or total interest).&quot;
+  }
+]</pre><h5>Main/Python arithmetic audit</h5><pre>[
+  {
+    &quot;factor&quot;: &quot;total_interest&quot;,
+    &quot;main_value&quot;: 41.94,
+    &quot;python_value&quot;: &quot;15.00&quot;
+  }
+]</pre></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · HTTP error</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 1000,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I have a $1,000 balance&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I have a $1,000 balance&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 12,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: at a fixed 12% APR&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;at a fixed 12% APR&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 510,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: If I pay $510 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;If I pay $510 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;estimated_payoff_months&quot;,
+    &quot;value&quot;: 2,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independent Python verification; review blocked, not a final answer.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1000
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 12
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 510
+      }
+    ],
+    &quot;exposed_to_user&quot;: false,
+    &quot;review_status&quot;: &quot;blocked&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;total_interest&quot;,
+    &quot;value&quot;: &quot;15.00&quot;,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independent Python verification; review blocked, not a final answer.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1000
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 12
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 510
+      }
+    ],
+    &quot;exposed_to_user&quot;: false,
+    &quot;review_status&quot;: &quot;blocked&quot;
+  },
+  {
+    &quot;variable&quot;: &quot;total_repayment&quot;,
+    &quot;value&quot;: &quot;1015.00&quot;,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independent Python verification; review blocked, not a final answer.&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 1000
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 12
+      },
+      {
+        &quot;factor_id&quot;: &quot;monthly_payment&quot;,
+        &quot;value&quot;: 510
+      }
+    ],
+    &quot;exposed_to_user&quot;: false,
+    &quot;review_status&quot;: &quot;blocked&quot;
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>null</pre></details><p class="bad"><b>Error:</b> The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.</p><h5>Sheet/runtime disagreements</h5><pre>[
+  {
+    &quot;stage&quot;: &quot;calculation&quot;,
+    &quot;message&quot;: &quot;HTTP failure: The calculation could not be verified against your inputs. Please review amounts, units and missing information, then retry.&quot;
+  }
+]</pre><h5>Main/Python arithmetic audit</h5><pre>[
+  {
+    &quot;factor&quot;: &quot;total_interest&quot;,
+    &quot;main_value&quot;: 41.94,
+    &quot;python_value&quot;: &quot;15.00&quot;
+  }
+]</pre><h5>Internal Python verification — blocked, not shown as a final user result</h5><pre>{
+  &quot;model&quot;: &quot;debt_repayment&quot;,
+  &quot;balance&quot;: &quot;1000.00&quot;,
+  &quot;apr_percent&quot;: &quot;12&quot;,
+  &quot;first_month_interest&quot;: &quot;10.00&quot;,
+  &quot;payoff_possible&quot;: true,
+  &quot;payoff_months&quot;: 2,
+  &quot;total_interest&quot;: &quot;15.00&quot;,
+  &quot;monthly_payment&quot;: &quot;510.00&quot;,
+  &quot;total_repayment&quot;: &quot;1015.00&quot;
+}</pre></div></div></details></section><section class="case" data-failed="false"><details><summary><b>D3</b> · <span class="good">MATCH</span> · I owe $900 at 0% interest, with no fees. What monthly payment would clear it in six months?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Debt Repayment\ndebt_repayment&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;principal_balance, apr, monthly_payment\npayoff_months, monthly_interest, total_interest\ntotal_repayment, estimated_payoff_months, required_monthly_payment\nAliases\nbalance&quot;,
+  &quot;User goal and target&quot;: &quot;What payment clears the debt in six months?\nTarget: required_monthly_payment&quot;,
+  &quot;Given variables and values&quot;: &quot;principal_balance = $900\napr = 0%\npayoff_months = 6\nContext: no fees.&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Principal Balance, APR, and Desired Payoff Months.&quot;,
+  &quot;Inference and calculation&quot;: &quot;required_monthly_payment = $900 ÷ 6 = $150/month.&quot;,
+  &quot;Still missing&quot;: &quot;None.&quot;,
+  &quot;Next action&quot;: &quot;Calculate.&quot;,
+  &quot;Expected behavior&quot;: &quot;Show the required $150 monthly payment.&quot;,
+  &quot;ID&quot;: &quot;D3&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> required_monthly_payment</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 900,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $900&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $900&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: 0% interest&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;0% interest&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;payoff_months&quot;,
+    &quot;value&quot;: 6,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: clear it in six months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;clear it in six months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;required_monthly_payment&quot;,
+    &quot;value&quot;: 150.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 900
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;payoff_months&quot;,
+        &quot;value&quot;: 6
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Required monthly payment: $150.00 / month&quot;,
+  &quot;detail&quot;: &quot;The required monthly payment can be calculated by dividing the principal balance by the payoff months.&quot;
+}</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · conditional</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> required_monthly_payment</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 900,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $900&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $900&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;value&quot;: 0,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: 0% interest&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;0% interest&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;payoff_months&quot;,
+    &quot;value&quot;: 6,
+    &quot;unit&quot;: &quot;months&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: clear it in six months&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;clear it in six months&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;required_monthly_payment&quot;,
+    &quot;value&quot;: 150.0,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;derived&quot;,
+    &quot;source&quot;: &quot;inferred&quot;,
+    &quot;source_detail&quot;: &quot;Independently verified from the reviewed inputs and model assumptions.&quot;,
+    &quot;relevant&quot;: true,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;factor_id&quot;: &quot;principal_balance&quot;,
+        &quot;value&quot;: 900
+      },
+      {
+        &quot;factor_id&quot;: &quot;apr&quot;,
+        &quot;value&quot;: 0
+      },
+      {
+        &quot;factor_id&quot;: &quot;payoff_months&quot;,
+        &quot;value&quot;: 6
+      }
+    ]
+  }
+]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>{
+  &quot;headline&quot;: &quot;Required monthly payment: $150.00 / month&quot;,
+  &quot;detail&quot;: &quot;The required monthly payment is calculated by dividing the principal balance by the number of payoff months.&quot;
+}</pre></details></div></div></details></section><section class="case" data-failed="false"><details><summary><b>D4</b> · <span class="good">MATCH</span> · I owe $5,000 on my credit card and can pay $200 a month. How long would it take to pay it off?</summary><details><summary>Sheet expectations (harness only)</summary><pre>{
+  &quot;Expected model&quot;: &quot;Debt Repayment\ndebt_repayment&quot;,
+  &quot;Model variables before Go Deeper&quot;: &quot;principal_balance, apr, monthly_payment\npayoff_months, monthly_interest, total_interest\ntotal_repayment, estimated_payoff_months, required_monthly_payment\nAliases\nbalance&quot;,
+  &quot;User goal and target&quot;: &quot;How many months until payoff?\nTarget: estimated_payoff_months&quot;,
+  &quot;Given variables and values&quot;: &quot;principal_balance = $5,000\nmonthly_payment = $200/month&quot;,
+  &quot;Required inputs for this target&quot;: &quot;Principal Balance, APR, and Monthly Payment.&quot;,
+  &quot;Inference and calculation&quot;: &quot;The APR cannot be inferred from the balance or payment amount.&quot;,
+  &quot;Still missing&quot;: &quot;apr.&quot;,
+  &quot;Next action&quot;: &quot;Ask one question: “What’s the APR on that balance?”&quot;,
+  &quot;Expected behavior&quot;: &quot;Wait for the APR before giving a payoff time.&quot;,
+  &quot;ID&quot;: &quot;D4&quot;
+}</pre></details><div class="columns"><div class="run"><h3>Before base-input changes</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 5000,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $5,000 on my credit card&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $5,000 on my credit card&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: can pay $200 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;can pay $200 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;label&quot;: &quot;What is your apr?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your apr?&quot;</pre></details></div><div class="run"><h3>Final full batch</h3><h4>Turn 1 · needs_input</h4><p><b>Selected:</b> debt_repayment · <b>Target:</b> estimated_payoff_months</p><details><summary>Given Information</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;principal_balance&quot;,
+    &quot;value&quot;: 5000,
+    &quot;unit&quot;: &quot;$&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: I owe $5,000 on my credit card&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;I owe $5,000 on my credit card&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  },
+  {
+    &quot;variable&quot;: &quot;monthly_payment&quot;,
+    &quot;value&quot;: 200,
+    &quot;unit&quot;: &quot;$/month&quot;,
+    &quot;role&quot;: &quot;known&quot;,
+    &quot;source&quot;: &quot;stated&quot;,
+    &quot;source_detail&quot;: &quot;question: can pay $200 a month&quot;,
+    &quot;supporting_facts&quot;: [
+      {
+        &quot;source&quot;: &quot;question&quot;,
+        &quot;quote&quot;: &quot;can pay $200 a month&quot;,
+        &quot;variable&quot;: null
+      }
+    ]
+  }
+]</pre></details><details><summary>Inferred Information with supporting facts</summary><pre>[]</pre></details><details open><summary>Missing Information — required user inputs only</summary><pre>[
+  {
+    &quot;variable&quot;: &quot;apr&quot;,
+    &quot;label&quot;: &quot;What is your apr?&quot;,
+    &quot;unit&quot;: null,
+    &quot;help&quot;: null,
+    &quot;input_type&quot;: &quot;number&quot;
+  }
+]</pre></details><details><summary>Coverage gaps</summary><pre>[]</pre></details><details open><summary>Result or next question</summary><pre>&quot;What is your apr?&quot;</pre></details></div></div></details></section><h2>Scope and reproducibility</h2><p>110 backend tests, 25 calculator/agent tests, 6 extraction HTTP tests, frontend tests (including 800 rendering combinations) and lint passed. The report tests the API/provider flow, not browser clicks. Each live batch used fresh per-case process caches and unchanged English inputs. LLM runs remain nondeterministic; the baseline and two intermediate reruns are retained rather than hidden.</p><p class="muted">Source SHA-256: c7de5588ca7e660794f2df0dfc43906d3e23946d103e11412f3b5609d0341b9c</p></main><script>function filterCases(failed){document.querySelectorAll(".case").forEach(e=>{e.hidden=failed&&e.dataset.failed!=="true";});}</script></html>

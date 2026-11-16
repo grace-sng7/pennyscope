@@ -31,6 +31,14 @@ class BedrockTransport(unittest.TestCase):
         self.assertNotIn('fake-secret',json.dumps(request))
         self.client.close.assert_called_once()
 
+    def test_scoped_main_schema_is_not_mislabeled_as_extraction(self):
+        from question_approach import Draft
+        b.generate_json('Main scoped calculation','question',Draft.model_json_schema(),60)
+        instruction=self.client.converse.call_args.kwargs['system'][0]['text']
+        self.assertIn('MAIN calculation stage',instruction)
+        self.assertIn('include that variable exactly once',instruction)
+        self.assertNotIn('factor extraction only',instruction)
+
     def test_throttle_is_retryable_but_access_denial_is_not(self):
         for code,status,expected in [('ThrottlingException',400,429),('AccessDeniedException',403,403)]:
             self.client.converse.side_effect=ClientError({'Error':{'Code':code,'Message':'private-provider-body'},'ResponseMetadata':{'HTTPStatusCode':status}},'Converse')

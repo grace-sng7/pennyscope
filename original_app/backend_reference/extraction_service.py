@@ -27,7 +27,7 @@ def _unresolved(decision, question, revision=0):
     elif decision.model=='multiple':
         names=', '.join(m.replace('_',' ') for m in decision.models)
         message=f'Your question involves {names}. Which part would you like to address first?'
-    else:message='This question does not match one of the four existing financial models.'
+    else:message='I’ll work through this question using the information you provided.'
     return {'model':None,'target_variable':None,'factors':[], 'assumptions':[],
             'clarification_questions':[] if decision.model=='gap' else [{'target_variable':'model_selection','question':message,'why_it_matters':'Select a financial intent before extracting model-specific factors.'}],
             'goal_summary':message,'confidence_note':'No model-specific factor extraction has run.',
@@ -63,11 +63,11 @@ def _extract_branch(decision, question, reference_date, timezone, *, history=Non
     assumptions=[{k:f[k] for k in ('variable','value','unit','source','source_detail')} for f in factors]
     messages=list(history or [])
     messages.append({'role':'user','content':correction if correction is not None else question})
-    response={'model':registry.model,'target_variable':selection.target_variable,'factors':factors,
+    response={'model':registry.model,'target_variable':selection.target_variable,'supporting_targets':selection.supporting_targets,'factors':factors,
         'assumptions':assumptions,'clarification_questions':[],
         'goal_summary':selection.goal_summary,'confidence_note':selection.confidence_note,
         'routing':decision.model_dump(exclude_defaults=True),
-        'selection_state':{'model':registry.model,'revision':revision,'history':messages[-12:],'active_question':question}}
+        'selection_state':{'model':registry.model,'revision':revision,'history':messages[-12:],'active_question':question,'reference_date':reference_date,'timezone':timezone}}
     return ExtractionResponse.model_validate(response).model_dump(exclude_unset=True)
 
 
@@ -94,7 +94,11 @@ def correct(user_message,reference_date,timezone,previous_extraction,user_correc
     state=previous_extraction.get('selection_state',{})
     prior_model=state.get('model') or previous_extraction.get('model')
     prior_model={'bill_custom':'bill_split','bill_settlement':'bill_split'}.get(prior_model,prior_model)
-    messages=history if history is not None else state.get('history',[])
+    messages=list(history if history is not None else state.get('history',[]))
+    import base_input_rules
+    pending_question=base_input_rules.clarification_context(previous_extraction,state.get('active_question') or user_message,reference_date,timezone)
+    if pending_question:messages.append(pending_question)
+    previous_extraction,bound_reply=base_input_rules.bind_required_reply(previous_extraction,state.get('active_question') or user_message,user_correction,reference_date,timezone)
     active_question=state.get('active_question') or user_message
     pending=state.get('pending_transition')
     if not prior_model:
@@ -104,7 +108,7 @@ def correct(user_message,reference_date,timezone,previous_extraction,user_correc
     try:registry=get_registry(prior_model)
     except ValueError:raise HTTPException(422,'The previous model selection is invalid. Start a new question.') from None
     followup=(pending+'\nUser clarification: '+user_correction) if pending else user_correction
-    if not pending and intent_transition.ordinary_update(user_correction,registry):
+    if not pending and (bound_reply or intent_transition.ordinary_update(user_correction,registry)):
         decision=model_router.RoutingDecision(model=prior_model,transition='continuation')
     else:
         decision=model_router.route_followup(followup,current_model=prior_model,current_question=active_question,history=messages)

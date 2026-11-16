@@ -8,6 +8,7 @@ import json
 from decimal import Decimal
 
 from contract import ModelFactor
+from base_input_rules import MONTHLY
 from financial_tools import (calculate_savings, calculate_cash_flow, split_bill,
                              split_custom, settle_payments, calculate_debt_repayment, monthly)
 
@@ -45,8 +46,9 @@ def validate(draft, facts):
     if model not in TOOLS or not isinstance(inputs,dict) or not isinstance(target,str):
         raise ValueError('Unknown model or target')
     allowed=set(inspect.signature(TOOLS[model]).parameters)
-    if model=='budget_cash_flow':allowed.update(('expense_adjustments','spending_change_entries'))
-    if model in ('bill_split','bill_custom'):allowed.update(('amounts_paid','shared_items'))
+    if model=='savings_goal':allowed.add('spending_entries')
+    if model=='budget_cash_flow':allowed.update(('expense_adjustments','spending_change_entries','monthly_surplus','replaced_recurring_cost'))
+    if model in ('bill_split','bill_custom'):allowed.update(('amounts_paid','shared_items','tax_and_tip'))
     if set(inputs)-allowed:raise ValueError('Unknown calculator input')
     for name,value in inputs.items():
         if model=='savings_goal' and name=='solve_for':
@@ -59,16 +61,18 @@ def validate(draft, facts):
         if not fact or fact['value'] is None or not same(value,decode(fact['value'])):
             raise ValueError('Input differs from supporting evidence')
         expected={'monthly_income':'$/month','monthly_spending':'$/month','monthly_payment':'$/month',
-                  'balance':'$','current_savings':'$','target':'$','total':'$', 'tax':'$','tip':'$',
-                  'monthly_savings':'$/month','spending_change':'$/month','income_change':'$/month','months':'months','payoff_months':'months'}.get(name)
+                  'balance':'$','current_savings':'$','target':'$','total':'$', 'tax':'$','tip':'$','tax_and_tip':'$',
+                  'replaced_recurring_cost':'$/month','monthly_surplus':'$/month','monthly_savings':'$/month','spending_change':'$/month','income_change':'$/month','months':'months','payoff_months':'months'}.get(name)
         if expected and fact.get('unit') not in (None,expected):raise ValueError('Incompatible units')
     if model=='savings_goal':
         # Never let the verifier's default turn unknown savings into zero.
         if 'current_savings' not in inputs:raise ValueError('Starting savings must be explicit')
-        if 'monthly_savings' not in inputs and inputs.get('solve_for') in ('future_balance','affordability','months_required'):
-            if inputs.get('monthly_income') is None or inputs.get('monthly_spending') is None:
+        if 'monthly_savings' not in inputs and inputs.get('months')!=0 and inputs.get('solve_for') in ('future_balance','affordability','months_required'):
+            if inputs.get('monthly_income') is None or (inputs.get('monthly_spending') is None and inputs.get('spending_entries') is None):
                 raise ValueError('Contribution or income and spending are required')
     if model=='budget_cash_flow':
+        if 'monthly_surplus' in inputs and set(inputs) & {'monthly_income','monthly_spending','income_entries','spending_entries','fixed_income','variable_income','fixed_costs','variable_costs','expense_categories','expense_adjustments'}:
+            raise ValueError('Choose surplus or a complete breakdown, not both')
         # The existing tool supports optional bucket components; require both when
         # choosing bucket form so unavailable amounts never become implicit zero.
         for pair in [('fixed_income','variable_income'),('fixed_costs','variable_costs')]:
@@ -83,6 +87,15 @@ def validate(draft, facts):
 
 def verify(draft):
     model=draft['model']; inputs=dict(draft['inputs'])
+    if model=='savings_goal' and inputs.get('months')==0 and inputs.get('solve_for') in ('affordability','future_balance') and not any(k in inputs for k in ('monthly_savings','monthly_income','monthly_spending','spending_entries')):
+        # A purchase today has zero future deposits, regardless of capacity.
+        inputs['monthly_savings']=0
+    if model=='savings_goal' and 'spending_entries' in inputs:
+        if 'monthly_spending' in inputs or 'monthly_savings' in inputs:
+            raise ValueError('Choose an explicit contribution, total spending or complete entries, not more than one')
+        entries=inputs.pop('spending_entries')
+        if not isinstance(entries,list) or not entries:raise ValueError('A complete spending breakdown is required')
+        inputs['monthly_spending']=sum((monthly(e['amount'],e.get('frequency','monthly')) for e in entries),Decimal(0))
     if model=='budget_cash_flow' and 'spending_change_entries' in inputs:
         if 'spending_change' in inputs:raise ValueError('Choose raw periodic changes or a monthly change, not both')
         entries=inputs.pop('spending_change_entries')
@@ -99,14 +112,50 @@ def verify(draft):
             if by_name[a['name']].get('proposed_reduction',0):raise ValueError('Duplicate adjustment')
             by_name[a['name']]['proposed_reduction']=a['proposed_reduction']
         inputs['expense_categories']=categories
+    if model=='budget_cash_flow' and 'replaced_recurring_cost' in inputs:
+        old=Decimal(str(inputs.pop('replaced_recurring_cost')))
+        new=inputs.get('spending_change')
+        if new is None or not old.is_finite() or old<0 or Decimal(str(new))<0:
+            raise ValueError('A replacement needs the stated old and new charges')
+        inputs['spending_change']=Decimal(str(new))-old
+    if model=='bill_split' and 'tax_and_tip' in inputs:
+        if 'tax' in inputs or 'tip' in inputs:raise ValueError('Do not double-count combined and separate charges')
+        # The native calculator applies the same proportional allocation to
+        # their sum. This is an internal pooled fee, not a claim about tax alone.
+        inputs['tax']=inputs.pop('tax_and_tip')
     paid=inputs.pop('amounts_paid',None) if model in ('bill_split','bill_custom') else None
     shared=inputs.pop('shared_items',None) if model in ('bill_split','bill_custom') else None
     if shared:
         if model!='bill_split' or inputs.get('method')!='itemized':raise ValueError('Shared items need itemized allocation')
         inputs['items']=[*inputs.get('items',[]),*shared]
-    result=TOOLS[model](**inputs)
+    if model=='budget_cash_flow' and 'monthly_surplus' in inputs:
+        # An explicitly stated net amount is sufficient. Do not fabricate gross
+        # income or spending to fit the older calculator signature.
+        surplus=Decimal(str(inputs.pop('monthly_surplus')))
+        change=Decimal(str(inputs.get('income_change',0)))-Decimal(str(inputs.get('spending_change',0)))
+        if not surplus.is_finite() or not change.is_finite():raise ValueError('Invalid cash flow')
+        money=lambda n:str(n.quantize(Decimal('.01')))
+        result={'model':model,'monthly_surplus':money(surplus),
+                'scenario_monthly_surplus':money(surplus+change),'monthly_surplus_change':money(change)}
+    else:
+        if model=='bill_split' and isinstance(inputs.get('people'),(int,float)):
+            count=inputs['people']
+            if isinstance(count,bool) or count!=int(count) or count<1 or count>1000 or inputs.get('method')!='equal':
+                raise ValueError('Anonymous count requires an equal split')
+            inputs['people']=[f'Person {i+1}' for i in range(int(count))]
+        result=TOOLS[model](**inputs)
+    if model=='savings_goal' and inputs.get('monthly_spending') is not None:
+        result['monthly_spending']=str(Decimal(str(inputs['monthly_spending'])).quantize(Decimal('.01')))
+        if inputs.get('monthly_income') is not None:
+            result['monthly_surplus']=str((Decimal(str(inputs['monthly_income']))-Decimal(str(inputs['monthly_spending']))).quantize(Decimal('.01')))
     if model=='budget_cash_flow':result['affordable']=Decimal(result['scenario_monthly_surplus'])>=0
-    if paid is not None:result.update(settle_payments(result['amounts_owed'],paid))
+    if paid is not None:
+        # The single whole-bill payer is explicitly established by extraction.
+        # Other payer zeros follow only when supplied paid total covers the bill.
+        owed=result['amounts_owed']
+        if set(paid)<set(owed) and sum(Decimal(str(v)) for v in paid.values())==sum(Decimal(str(v)) for v in owed.values()):
+            paid={person:paid.get(person,0) for person in owed}
+        result.update(settle_payments(owed,paid))
     if model=='debt_repayment' and result.get('total_interest') is not None:
         result['total_repayment']=str((Decimal(str(inputs['balance']))+Decimal(result['total_interest'])).quantize(Decimal('.01')))
     return result
@@ -122,6 +171,9 @@ def resolved_factors(draft, actual, facts):
     factors=[]
     for entry in draft['factors']:
         f=dict(entry); name=f['variable']
+        if name=='affordability_status':f['unit']='text'
+        if name in MONTHLY and f.get('unit') in (None,'$'):
+            f['unit']='$/month'
         if f['role']=='known':
             fact=facts.get(name)
             if not fact or not same(decode(f['value']),decode(fact['value'])):

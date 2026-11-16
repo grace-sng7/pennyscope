@@ -45,6 +45,7 @@ export function toCalculateWire(request: CalculationRequest): CalculateWireReque
 export interface WireMissingInput { variable: string; label?: string | null; unit?: string | null; help?: string | null; input_type?: 'number' | 'text' | 'date' | null }
 export interface WireParameter { key: string; label: string; value: number; unit?: string | null; min?: number | null; max?: number | null; step?: number | null }
 export interface CalculateWireResponse extends ModelContext {
+  verification?: import('./calculation-contract').Verification | null;
   status: 'ready' | 'conditional' | 'needs_input' | 'unsupported';
   message?: string | null;
   answer?: { headline: string; detail?: string | null } | null;
@@ -104,6 +105,21 @@ export function fromCalculateWire(raw: unknown, request: CalculationRequest): Ca
   if (status !== 'ready' && status !== 'conditional' && status !== 'needs_input' && status !== 'unsupported') return fail(`status must be ready, conditional, needs_input or unsupported (got ${String(status)})`);
   const { extraction, edits, answers } = request;
   const base = { ...emptyContent(), ...validateModelContext(w) };
+
+  if (w.verification != null) {
+    const verification = rec(w.verification, 'verification');
+    if (!['matched', 'mismatch', 'unverified', 'input_sufficient'].includes(String(verification.status))) fail('Invalid verification status');
+    if (verification.context != null && verification.context !== 'answer' && verification.context !== 'question') fail('Invalid verification context');
+    base.verification = {
+      status: verification.status as 'matched' | 'mismatch' | 'unverified' | 'input_sufficient',
+      target_variable: text(verification.target_variable, 'verification.target_variable'),
+      main_value: verification.main_value,
+      ...(verification.context === 'question' ? { context: 'question' as const } : {}),
+      ...(verification.python_value !== undefined ? { python_value: verification.python_value } : {}),
+      ...(optText(verification.unit) ? { unit: optText(verification.unit) } : {}),
+      ...(optText(verification.message) ? { message: optText(verification.message) } : {}),
+    };
+  }
 
   const parameters = list(w.parameters, 'parameters').map(buildParameter);
   if (new Set(parameters.map(p => p.id)).size !== parameters.length) fail('parameters contain a duplicate key');

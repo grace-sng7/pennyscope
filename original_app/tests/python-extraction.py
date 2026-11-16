@@ -46,8 +46,12 @@ class ExtractionIntegration(unittest.TestCase):
 
     def test_invalid_factor_does_not_reach_frontend(self):
         invalid=selected('apr',{})
-        with patch('gemini_gateway.call_json',side_effect=[{'model':'savings_goal'},invalid]):r=self.client.post('/extract',json=self.request)
-        self.assertEqual(r.status_code,502)
+        with patch('gemini_gateway.call_json',side_effect=[{'model':'savings_goal'},invalid]), patch('gemini_gateway.call_text',return_value='ANSWER: You need to save $200 per month.') as fallback:
+            r=self.client.post('/extract',json=self.request)
+        self.assertEqual(r.status_code,200)
+        self.assertEqual(r.json()['assumptions'],[])
+        self.assertEqual(r.json()['chat_fallback']['text'],'You need to save $200 per month.')
+        fallback.assert_called_once()
 
     def test_missing_credentials_fail_before_provider(self):
         import gemini_gateway as g

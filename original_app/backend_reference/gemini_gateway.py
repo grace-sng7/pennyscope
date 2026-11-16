@@ -24,7 +24,7 @@ PHASE_OVERHEAD = 20.0  # connect (5), write (10), pool (5)
 BASE_DELAY = 0.75
 MAX_DELAY = 3.0
 RETRY_STATUSES = {429, 500, 502, 503, 504}
-STAGES = {'extraction', 'correction', 'main_calculation', 'inspector', 'model_routing', 'factor_extraction'}
+STAGES = {'extraction', 'correction', 'main_calculation', 'inspector', 'model_routing', 'factor_extraction','chat_fallback'}
 
 
 
@@ -62,6 +62,9 @@ def _factor_schema(stage):
             'missing_inputs':{'type':'array','items':{'type':'object','properties':{'variable':{'type':'string'},'label':{'type':'string'},'unit':{'type':'string'}},'required':['variable','label']}},
             'gap_reason':{'anyOf':[{'type':'string'},{'type':'null'}]}})
         schema['required'] += ['inputs','bindings','results','headline','calculation','assumptions','missing_inputs']
+        # Let Main work through its arithmetic before committing final values.
+        schema['properties']={'calculation':schema['properties']['calculation'],
+                              **{k:v for k,v in schema['properties'].items() if k!='calculation'}}
     return schema
 
 
@@ -92,7 +95,11 @@ def selected_provider():
     return json.loads(path.read_text()).get('provider','gemini') if path.exists() else 'gemini'
 
 
-def call_json(system, prompt, *, stage='extraction', response_schema=None):
+def call_text(system,prompt,*,stage='chat_fallback'):
+    return call_json(system,prompt,stage=stage,_text=True)
+
+
+def call_json(system, prompt, *, stage='extraction', response_schema=None, _text=False):
     # Restrict log fields to known labels, not caller/provider content.
     stage = stage if stage in STAGES else 'extraction'
     call_id = uuid.uuid4().hex[:12]
@@ -112,9 +119,10 @@ def call_json(system, prompt, *, stage='extraction', response_schema=None):
         payload = {'systemInstruction': {'parts': [{'text': system}]},
                    'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
                    'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0}}
-        if response_schema is not None:
+        if _text:payload['generationConfig'].pop('responseMimeType',None)
+        if response_schema is not None and not _text:
             payload['generationConfig']['responseJsonSchema'] = response_schema
-        elif stage in ('extraction','correction','main_calculation'):
+        elif not _text and stage in ('extraction','correction','main_calculation'):
             payload['generationConfig']['responseJsonSchema'] = _factor_schema(stage)
         for attempt in range(1, MAX_ATTEMPTS + 1):
             remaining = deadline - time.monotonic()
@@ -124,9 +132,9 @@ def call_json(system, prompt, *, stage='extraction', response_schema=None):
             try:
                 # Give generation up to a full minute; leave room for connection/write phases.
                 if provider == 'bedrock':
-                    from bedrock_transport import generate_json
-                    data = generate_json(system, prompt, payload['generationConfig'].get('responseJsonSchema'),
-                                         min(READ_TIMEOUT, remaining - PHASE_OVERHEAD))
+                    from bedrock_transport import generate_json,generate_text
+                    if _text:data=generate_text(system,prompt,min(READ_TIMEOUT,remaining-PHASE_OVERHEAD))
+                    else:data=generate_json(system,prompt,payload['generationConfig'].get('responseJsonSchema'),min(READ_TIMEOUT,remaining-PHASE_OVERHEAD))
                 else:
                     response = httpx.post(
                         f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
@@ -151,8 +159,10 @@ def call_json(system, prompt, *, stage='extraction', response_schema=None):
                 continue
             # Malformed output and schema errors are NOT transient transport errors.
             if provider == 'gemini':
-                data = json.loads(response.json()['candidates'][0]['content']['parts'][0]['text'])
-            if not isinstance(data, dict):
+                data = response.json()['candidates'][0]['content']['parts'][0]['text']
+                if not _text:data=json.loads(data)
+            if _text and (not isinstance(data,str) or not data.strip()):raise ValueError('empty plain response')
+            if not _text and not isinstance(data, dict):
                 raise ValueError('expected object')
             LOGGER.info('llm_success provider=%s stage=%s call=%s attempts=%d elapsed_s=%.3f',
                         provider, stage, call_id, attempt, time.monotonic() - started)
@@ -163,5 +173,5 @@ def call_json(system, prompt, *, stage='extraction', response_schema=None):
                        provider, stage, call_id, attempt, status, type(exc).__name__, time.monotonic() - started)
         label = {'extraction': 'extract the facts', 'correction': 'apply your correction',
                  'main_calculation': 'draft the calculation', 'inspector': 'complete the Inspector review',
-                 'model_routing': 'select a financial model', 'factor_extraction': 'extract the selected model factors'}[stage]
+                 'model_routing': 'select a financial model', 'factor_extraction': 'extract the selected model factors','chat_fallback':'answer in plain language'}[stage]
         raise HTTPException(status_code=502, detail=f'{"Bedrock" if provider == "bedrock" else "Gemini"} could not {label}. Your edits are preserved; please retry.') from None
