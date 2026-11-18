@@ -94,7 +94,12 @@ export default function ChatApp() {
   const push = (m: NewMsg) => setMsgs(list => [...list.filter(x => !('kind' in x && x.kind === 'typing')), { ...m, id: ++idRef.current } as Msg]);
   const bot = (textValue: string, extra: { note?: string; replies?: string[]; verification?: CalculationResponse['verification'] } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
   const typing = () => push({ role: 'bot', kind: 'typing' });
-  const setExtraction = (value: ExtractionResponse) => { exRef.current = value; setEx(value); };
+  const setExtraction = (value: ExtractionResponse) => {
+    // The sheet stays closed and blank until there is something to show. The first time values arrive,
+    // open it on wide screens; on phones it stays behind the header toggle so it never covers the chat.
+    if (!exRef.current && typeof window !== 'undefined' && window.matchMedia?.('(min-width: 901px)').matches) setSheetOpen(true);
+    exRef.current = value; setEx(value);
+  };
 
   const showPlain = (reply: PlainChat) => {
     current.current = null;
@@ -280,7 +285,7 @@ export default function ChatApp() {
   const reset = () => {
     if (timer.current) clearTimeout(timer.current);
     calcSeq.current++; idRef.current = 0; pendingUnknowns.current = null; exRef.current = null; originalRef.current = ''; plainQuestion.current = null; recoveryUsed.current = false; paramsRef.current = {}; asked.current = {}; skipped.current = new Set(); current.current = null; retry.current = null;
-    setMsgs([]); setEx(null); setReviewedMath(null); setParams({}); setStage(0); setText(''); setBusy(false);
+    setMsgs([]); setEx(null); setSheetOpen(false); setReviewedMath(null); setParams({}); setStage(0); setText(''); setBusy(false);
   };
   const pick = (value: string) => { setText(value); input.current?.focus(); };
   const lastAnswer = [...msgs].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
@@ -307,7 +312,7 @@ export default function ChatApp() {
     <header className={s.header}>
       <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
-      <div className={s.headerRight}><button type="button" className={`${s.sheetToggle} ${empty ? s.sheetToggleHome : ''}`} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
+      <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
     </header>
     <div className={s.body}>
       <main className={s.thread} aria-live="polite">
@@ -326,7 +331,7 @@ export default function ChatApp() {
           </div></div>)}
         <div ref={bottom} />
       </main>
-      <div id="working-sheet" className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''} ${empty && !sheetOpen ? s.sheetHidden : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
+      <div id="working-sheet" className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : s.sheetHidden}`}><WorkingSheet intro={empty} extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
     </div>
     {!empty && composer}
     {profileOpen && <ProfilePanel profile={profile} onClose={() => setProfileOpen(false)}

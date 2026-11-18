@@ -87,12 +87,13 @@ function MathPanel({ response }: { response: CalculationResponse }) {
 }
 
 // Always-visible record of every value and where it came from: the "framework in the background".
-export function WorkingSheet({ extraction, math, profileSummary, onProfile }: { extraction: ExtractionResponse | null; math: CalculationResponse | null; profileSummary?: string; onProfile?: () => void }) {
+// intro: the home page shows a short explainer here. In a chat the sheet stays blank until values arrive.
+export function WorkingSheet({ extraction, math, profileSummary, onProfile, intro = false }: { extraction: ExtractionResponse | null; math: CalculationResponse | null; profileSummary?: string; onProfile?: () => void; intro?: boolean }) {
   const factors = new Map(extraction ? extractionFactors(extraction).map(f => [f.variable, f]) : []);
   for (const factor of math?.factors ?? []) factors.set(factor.variable, factor);
   return <aside className={s.sheet} aria-label="Working sheet">
     <h2>Working sheet</h2>
-    {!extraction ? <SheetIntro profileSummary={profileSummary} onProfile={onProfile} /> : <ul>
+    {!extraction ? intro && <SheetIntro profileSummary={profileSummary} onProfile={onProfile} /> : <ul>
       {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={fromProfile(a) ? 'profile' : a.source} title={`${fromProfile(a) ? 'from your profile' : a.source}: ${a.source_detail}`}>
         <span className={`${s.dot} ${s[fromProfile(a) ? 'fromProfile' : a.source]}`} aria-label={fromProfile(a) ? 'from your profile' : a.source} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
     {extraction && <p className={s.legend}><span className={`${s.dot} ${s.stated}`} /> stated <span className={`${s.dot} ${s.fromProfile}`} /> profile <span className={`${s.dot} ${s.inferred}`} /> inferred <span className={`${s.dot} ${s.missing}`} /> missing</p>}
