@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node tests/contracts.mjs && node tests/backend-wire.mjs && node tests/local-answer.mjs && node tests/factor-ui.mjs && node tests/advisory-ui.mjs && node tests/resilient-ui.mjs && node tests/grace-presentation.mjs && node tests/clarification-first.mjs && node tests/fact-presentation.mjs"
+    "test": "node tests/contracts.mjs && node tests/backend-wire.mjs && node tests/local-answer.mjs && node tests/factor-ui.mjs && node tests/advisory-ui.mjs && node tests/resilient-ui.mjs && node tests/grace-presentation.mjs && node tests/clarification-first.mjs && node tests/fact-presentation.mjs && node tests/category-consistency.mjs"
   },
   "dependencies": {
     "next": "16.2.4",

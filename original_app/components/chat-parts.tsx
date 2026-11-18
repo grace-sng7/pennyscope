@@ -4,7 +4,7 @@ import { VerificationWarning } from './verification-warning';
 import { useState } from 'react';
 import { AnswerVisuals } from './answer-visuals';
 import { PresentationBoundary } from './presentation-boundary';
-import { extractionFactors, factorGroups, displayFactors } from '../lib/model-factors';
+import { extractionFactors, factorGroups, displayFactors, ROLE_SOURCE, type ModelFactor } from '../lib/model-factors';
 import { factLabel, factText } from '../lib/fact-presentation';
 import { type CalculationResponse } from '../lib/calculation-contract';
 import type { Assumption, ExtractionResponse } from '../lib/extraction';
@@ -21,6 +21,14 @@ export function show(a: Pick<Assumption, 'value' | 'unit'>): string {
   }
   return a.value;
 }
+
+// One rule for every place a value is shown (chips, working sheet): the factor's role, not its source.
+// The backend keeps approximate amounts the user supplied as role=known with source=inferred, so the
+// source alone would wrongly show something the user said as "I worked out".
+// known -> You told me (stated), derived -> I worked out (inferred), missing -> Still unknown; profile values apart.
+export type Category = 'stated' | 'inferred' | 'missing' | 'profile';
+export const category = (f: ModelFactor): Category => fromProfile(f) ? 'profile' : ROLE_SOURCE[f.role] ?? f.source;
+const CATEGORY_TEXT: Record<Category, string> = { stated: 'you told me', inferred: 'I worked out', missing: 'still unknown', profile: 'from your profile' };
 
 // Read-only summary of what the model understood. Clicking a chip pre-fills the composer, so
 // corrections happen in conversation rather than in form fields.
@@ -94,8 +102,8 @@ export function WorkingSheet({ extraction, math, profileSummary, onProfile, intr
   return <aside className={s.sheet} aria-label="Working sheet">
     <h2>Working sheet</h2>
     {!extraction ? intro && <SheetIntro profileSummary={profileSummary} onProfile={onProfile} /> : <ul>
-      {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={fromProfile(a) ? 'profile' : a.source} title={`${fromProfile(a) ? 'from your profile' : a.source}: ${a.source_detail}`}>
-        <span className={`${s.dot} ${s[fromProfile(a) ? 'fromProfile' : a.source]}`} aria-label={fromProfile(a) ? 'from your profile' : a.source} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
+      {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={category(a)} title={`${CATEGORY_TEXT[category(a)]}: ${a.source_detail}`}>
+        <span className={`${s.dot} ${s[category(a) === 'profile' ? 'fromProfile' : category(a)]}`} aria-label={CATEGORY_TEXT[category(a)]} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
     {extraction && <p className={s.legend}><span className={`${s.dot} ${s.stated}`} /> stated <span className={`${s.dot} ${s.fromProfile}`} /> profile <span className={`${s.dot} ${s.inferred}`} /> inferred <span className={`${s.dot} ${s.missing}`} /> missing</p>}
     {math && (math.status === 'ready' || math.status === 'conditional') && math.explanations.length > 0 && <><h2>The math</h2>{math.explanations.map((e, i) => <p key={i} className={s.sheetMath}><strong>{e.label}</strong><br />{e.text}</p>)}</>}
   </aside>;
