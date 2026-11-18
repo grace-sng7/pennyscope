@@ -65,7 +65,7 @@ SAVINGS = registry('savings_goal', {
     'monthly_income':'Monthly income when relevant', 'monthly_expenses':'Monthly spending when relevant',
     'spending_entries':'Complete expense breakdown supplied as separate amounts and frequencies; do not sum in extraction',
     'contribution_entries':'Raw deposit schedule with amount, frequency and count; nonmonthly exact schedules are preserved for a coverage-gap response, not converted to months',
-    'contribution_months':'Explicit number of monthly contributions before a calendar deadline, when the deadline itself is text/date',
+    'contribution_months':'Number of monthly saving periods: supplied count, or a calendar assumption added by code after extraction',
     'monthly_spending':'Existing spending alias', 'monthly_savings':'Existing contribution alias',
     'months':'Existing duration alias', 'target':'Existing target-amount alias',
     'monthly_surplus':'Income remaining after expenses', 'projected_savings':'Future savings balance',
@@ -76,7 +76,7 @@ SAVINGS = registry('savings_goal', {
     'A contribution toward a one-time goal belongs to this selected model even when monthly.',
     'For rent plus spending on everything else, keep the separate literals in spending_entries (no invented fixed/variable categories). Never emit their computed sum as known monthly_expenses.',
     'A partial expense list is not a complete spending total. Use spending_entries only for an explicitly complete breakdown.',
-    'Keep next March as goal_deadline text; never invent a duration or contribution count. contribution_months requires an explicit supplied count.',
+    'Keep next March as goal_deadline text; never invent a duration or contribution count. Extract contribution_months only for an explicit supplied count; code may add a labeled calendar assumption afterward.',
     'Keep savings holdings distinct from permission to spend them; do not assume all holdings are available.',
     'The target is not an input to ask the user for. Do not fabricate a deadline when time to goal is the target.',
     'Preserve dates and durations; do not calculate a number of months from a date.',
@@ -151,7 +151,7 @@ def required_inputs(model, target, values):
         groups = [(('current_savings',), ('available_savings',))]
         if target != 'projected_savings': groups.append((('goal_amount',),))
         if target not in ('months_to_goal','goal_deadline'): groups.append((('goal_deadline',), ('contribution_months',)))
-        if target not in ('required_monthly_savings','monthly_contribution') and not (target in ('affordability_status','shortfall','projected_savings') and values.get('goal_deadline')==0): groups.append(CONTRIBUTION)
+        if target not in ('required_monthly_savings','monthly_contribution') and not (target in ('affordability_status','shortfall','projected_savings') and (values.get('goal_deadline')==0 or values.get('contribution_months')==0)): groups.append(CONTRIBUTION)
         return groups
     if model == 'debt_repayment':
         groups = [(('principal_balance',),), (('apr',),)]

@@ -205,6 +205,12 @@ def validate(factor, registry, *, question, correction, history, profile, previo
     required=numeric_leaves(factor.value)
     for source,text in candidates:
         supplied=numbers(text)
+        # An amount for 'everything else' excludes other spending; it cannot
+        # become the whole monthly expense total even if its number is literal.
+        if canonical(factor.variable) in ('monthly_expenses','monthly_spending'):
+            context='\n'.join(text_sources[source])
+            partial=[Decimal(m.replace(',','')) for m in re.findall(r'(?<![\d.])\$?\s*(\d[\d,]*(?:\.\d+)?)\s*(?:(?:a|per)\s+month\s+)?(?:(?:on|for)\s+)?everything\s+else',context,re.I)]
+            if any(_same(factor.value,n) for n in partial):continue
         contextual=False
         if Decimal(0) in required and base_input_rules.contextual_zero(factor.variable,text):
             supplied.add(Decimal(0));contextual=True

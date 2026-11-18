@@ -1,5 +1,5 @@
 import { money, label } from './workspace-model';
-const labels: Record<string,string> = { contribution_entries:'Deposit schedule', income_entries:'Income', spending_entries:'Spending', expense_categories:'Expenses', shared_items:'Shared purchases', items:'Purchases', goal_deadline:'When you need it', contribution_months:'Monthly deposits', available_savings:'Available savings' };
+const labels: Record<string,string> = { contribution_entries:'Deposit schedule', income_entries:'Income', spending_entries:'Spending', expense_categories:'Expenses', shared_items:'Shared purchases', items:'Purchases', goal_deadline:'When you need it', contribution_months:'Saving period', available_savings:'Available savings' };
 export const factLabel=(name:string)=>labels[name]??label(name.replace(/_entries$/, ''));
 export function factText(value:unknown,unit?:string|null,variable=''):string {
  let data=value;

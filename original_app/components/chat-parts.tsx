@@ -69,15 +69,15 @@ export function AnswerCard({ response }: { response: CalculationResponse; intera
   if (!ok) return <QuestionText text={response.message ?? ''} verification={response.verification} />;
   return <div className={`${s.answer} ${s.answerBox}`}>
     <p className={s.headline}>{response.answer.headline}<VerificationWarning verification={response.verification} /></p>
+    {response.narrative && <PresentationBoundary resetKey={response.narrative} fallback={null}><p className={`${s.explain} ${s.answerExplanation}`}>{response.narrative.text}</p></PresentationBoundary>}
   </div>;
 }
 
-// Grace's narrative, charts, math disclosure and what-if interactions live below
+// Charts, math disclosure and what-if interactions live below
 // the answer. Each optional section can fail without taking the answer with it.
 export function AnswerSupporting({ response, interactive, disabled, onAsk }: { response: CalculationResponse; interactive: boolean; disabled: boolean; onAsk: (text: string) => void }) {
   if (response.status !== 'ready' && response.status !== 'conditional') return null;
   return <div className={s.supporting} aria-label="Supporting explanation">
-    {response.narrative && <p className={s.explain}>{response.narrative.text}</p>}
     {response.visuals && <PresentationBoundary resetKey={response.visuals} fallback={null}><AnswerVisuals v={response.visuals} /></PresentationBoundary>}
     <MathPanel response={response} />
     {interactive && !!response.narrative?.suggestions.length && <div><span className={s.chipCaption}>Try a what-if</span><QuickReplies replies={response.narrative.suggestions} disabled={disabled} onPick={onAsk} /></div>}

@@ -1,0 +1,734 @@
+{
+  "provider": "AWS Bedrock",
+  "reference_date": "2026-11-18",
+  "baseline": {
+    "request": {
+      "user_message": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?",
+      "reference_date": "2026-11-18",
+      "timezone": "America/New_York"
+    },
+    "status": 200,
+    "response": {
+      "assumptions": [
+        {
+          "variable": "monthly_income",
+          "value": 2400,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "user income",
+          "role": "known",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I make $2,400 a month after tax",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "current_savings",
+          "value": null,
+          "unit": "$",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided."
+        },
+        {
+          "variable": "goal_amount",
+          "value": null,
+          "unit": "$",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided."
+        },
+        {
+          "variable": "goal_deadline",
+          "value": null,
+          "unit": "months",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided."
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": null,
+          "unit": "$/month",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided."
+        }
+      ],
+      "clarification_questions": [
+        {
+          "target_variable": "current_savings",
+          "question": "How much of your savings can you put toward this goal? You can say $0 if none.",
+          "why_it_matters": "Needed to answer your selected financial question.",
+          "required": true
+        },
+        {
+          "target_variable": "goal_amount",
+          "question": "About how much will this goal cost?",
+          "why_it_matters": "Needed to answer your selected financial question.",
+          "required": true
+        },
+        {
+          "target_variable": "goal_deadline",
+          "question": "How many monthly deposits will you make before you need the money?",
+          "why_it_matters": "Needed to answer your selected financial question.",
+          "required": true
+        },
+        {
+          "target_variable": "monthly_expenses",
+          "question": "About how much do you spend each month on rent, food, and everything else?",
+          "why_it_matters": "Needed to answer your selected financial question.",
+          "required": true
+        }
+      ],
+      "goal_summary": "Here is what is known and what is still needed.",
+      "confidence_note": "A final answer needs the required user facts.",
+      "model": "savings_goal",
+      "target_variable": "affordability_status",
+      "factors": [
+        {
+          "variable": "monthly_income",
+          "value": 2400,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "user income",
+          "role": "known",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I make $2,400 a month after tax",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "affordability_status",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "role": "missing",
+          "source_detail": "Requested result; not a user input.",
+          "relevant": true
+        },
+        {
+          "variable": "current_savings",
+          "value": null,
+          "unit": "$",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided.",
+          "role": "missing",
+          "relevant": true
+        },
+        {
+          "variable": "goal_amount",
+          "value": null,
+          "unit": "$",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided.",
+          "role": "missing",
+          "relevant": true
+        },
+        {
+          "variable": "goal_deadline",
+          "value": null,
+          "unit": "months",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided.",
+          "role": "missing",
+          "relevant": true
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": null,
+          "unit": "$/month",
+          "source": "missing",
+          "source_detail": "Required for the selected calculation; not provided.",
+          "role": "missing",
+          "relevant": true
+        }
+      ],
+      "routing": {
+        "model": "savings_goal"
+      },
+      "assistant_message": "I know what you earn, but not how much is available after your expenses. I also need the other items marked \u201cStill unknown\u201d before I can answer. Let\u2019s fill them in one at a time."
+    }
+  },
+  "after": {
+    "request": {
+      "user_message": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?",
+      "reference_date": "2026-11-18",
+      "timezone": "America/New_York"
+    },
+    "runs": [
+      {
+        "extraction_status": 200,
+        "extraction": {
+          "assumptions": [
+            {
+              "variable": "monthly_income",
+              "value": 2400,
+              "unit": "$/month",
+              "source": "stated",
+              "source_detail": "question: I make $2,400 a month after tax"
+            },
+            {
+              "variable": "spending_entries",
+              "value": "[{\"name\": \"rent\", \"amount\": 1000, \"frequency\": \"monthly\"}, {\"name\": \"everything else\", \"amount\": 600, \"frequency\": \"monthly\"}]",
+              "unit": "text",
+              "source": "stated",
+              "source_detail": "question: rent is $1,000 and I spend about $600 on everything else"
+            },
+            {
+              "variable": "current_savings",
+              "value": 900,
+              "unit": "$",
+              "source": "stated",
+              "source_detail": "question: I have $900 saved"
+            },
+            {
+              "variable": "goal_amount",
+              "value": 2500,
+              "unit": "$",
+              "source": "stated",
+              "source_detail": "question: a $2,500 laptop"
+            },
+            {
+              "variable": "goal_deadline",
+              "value": "next March",
+              "unit": "text",
+              "source": "stated",
+              "source_detail": "question: by next March"
+            },
+            {
+              "variable": "affordability_status",
+              "value": null,
+              "unit": null,
+              "source": "missing",
+              "source_detail": "Requested target; not calculated during extraction."
+            },
+            {
+              "variable": "contribution_months",
+              "value": 4,
+              "unit": "months",
+              "source": "inferred",
+              "source_detail": "Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed."
+            }
+          ],
+          "clarification_questions": [],
+          "goal_summary": "User wants to know if they can afford a $2,500 laptop by next March with their current income and savings.",
+          "confidence_note": "The user has provided their monthly income, expenses, and current savings, which will be used to determine their affordability status. Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed.",
+          "model": "savings_goal",
+          "target_variable": "affordability_status",
+          "supporting_targets": [],
+          "factors": [
+            {
+              "variable": "monthly_income",
+              "value": 2400,
+              "unit": "$/month",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I make $2,400 a month after tax",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "I make $2,400 a month after tax",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "spending_entries",
+              "value": "[{\"name\": \"rent\", \"amount\": 1000, \"frequency\": \"monthly\"}, {\"name\": \"everything else\", \"amount\": 600, \"frequency\": \"monthly\"}]",
+              "unit": "text",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: rent is $1,000 and I spend about $600 on everything else",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "rent is $1,000 and I spend about $600 on everything else",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "current_savings",
+              "value": 900,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I have $900 saved",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "I have $900 saved",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "goal_amount",
+              "value": 2500,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: a $2,500 laptop",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "a $2,500 laptop",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "goal_deadline",
+              "value": "next March",
+              "unit": "text",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: by next March",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "by next March",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "affordability_status",
+              "value": null,
+              "unit": null,
+              "role": "missing",
+              "source": "missing",
+              "source_detail": "Requested target; not calculated during extraction.",
+              "relevant": true,
+              "evidence": null,
+              "inference": null
+            },
+            {
+              "variable": "contribution_months",
+              "value": 4,
+              "unit": "months",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed.",
+              "relevant": true
+            }
+          ],
+          "routing": {
+            "model": "savings_goal"
+          },
+          "selection_state": {
+            "model": "savings_goal",
+            "revision": 0,
+            "history": [
+              {
+                "role": "user",
+                "content": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?"
+              }
+            ],
+            "active_question": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?",
+            "reference_date": "2026-11-18",
+            "timezone": "America/New_York"
+          },
+          "assistant_message": "User wants to know if they can afford a $2,500 laptop by next March with their current income and savings. Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed."
+        },
+        "extraction_seconds": 5.493010791018605,
+        "calculation_status": 200,
+        "calculation": {
+          "narrative": {
+            "text": "You are starting with $900 available for this plan. Setting aside $800 each month for 4 months adds $3,200. The plan uses $0 from your existing savings, leaving $900 of those savings untouched. Compare the options below or try changing one value. Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed.",
+            "suggestions": [
+              "What if I have 5 months instead?",
+              "What if I save $640 each month?"
+            ]
+          },
+          "visuals": {
+            "kind": "one_time",
+            "options": [
+              {
+                "label": "Current plan",
+                "current": true,
+                "feasible": true,
+                "goal": 2500.0,
+                "months": 4,
+                "budget_checked": true,
+                "monthly": 800.0,
+                "from_savings": 0.0,
+                "savings_left": 900.0,
+                "short": 0.0
+              },
+              {
+                "label": "Lower monthly saving, using available savings",
+                "current": false,
+                "feasible": true,
+                "goal": 2500.0,
+                "months": 4,
+                "budget_checked": true,
+                "monthly": 400.0,
+                "from_savings": 900.0,
+                "savings_left": 0.0,
+                "short": 0.0
+              },
+              {
+                "label": "Keep existing savings untouched",
+                "current": false,
+                "feasible": true,
+                "goal": 2500.0,
+                "months": 4,
+                "budget_checked": true,
+                "monthly": 625.0,
+                "from_savings": 0.0,
+                "savings_left": 900.0,
+                "short": 0.0
+              }
+            ],
+            "base_date": "2026-11-18",
+            "funding": {
+              "goal": 2500.0,
+              "from_income": 2500.0,
+              "from_savings": 0.0,
+              "short": 0.0
+            },
+            "timeline": [
+              {
+                "month": 1,
+                "set_aside": 800.0
+              },
+              {
+                "month": 2,
+                "set_aside": 1600.0
+              },
+              {
+                "month": 3,
+                "set_aside": 2400.0
+              },
+              {
+                "month": 4,
+                "set_aside": 3200.0
+              }
+            ],
+            "budget": {
+              "income": 2400.0,
+              "expenses": [
+                {
+                  "label": "rent",
+                  "amount": 1000.0
+                },
+                {
+                  "label": "everything else",
+                  "amount": 600.0
+                }
+              ],
+              "goal": 800.0,
+              "left_over": 0.0,
+              "basis": "income"
+            }
+          },
+          "chat_fallback": null,
+          "verification": {
+            "status": "matched",
+            "context": "answer",
+            "target_variable": "affordability_status",
+            "main_value": "Yes",
+            "python_value": true,
+            "unit": "text",
+            "message": "The requested final result matches the independent check."
+          },
+          "inferred_information": [],
+          "coverage_gaps": [],
+          "model": "savings_goal",
+          "target_variable": "affordability_status",
+          "factors": [
+            {
+              "variable": "monthly_income",
+              "value": 2400,
+              "unit": "$/month",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I make $2,400 a month after tax",
+              "relevant": true
+            },
+            {
+              "variable": "spending_entries",
+              "value": "[{\"name\": \"rent\", \"amount\": 1000, \"frequency\": \"monthly\"}, {\"name\": \"everything else\", \"amount\": 600, \"frequency\": \"monthly\"}]",
+              "unit": "text",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: rent is $1,000 and I spend about $600 on everything else",
+              "relevant": true
+            },
+            {
+              "variable": "current_savings",
+              "value": 900,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I have $900 saved",
+              "relevant": true
+            },
+            {
+              "variable": "goal_amount",
+              "value": 2500,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: a $2,500 laptop",
+              "relevant": true
+            },
+            {
+              "variable": "contribution_months",
+              "value": 4,
+              "unit": "months",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calculated by Main.",
+              "relevant": true
+            },
+            {
+              "variable": "monthly_spending",
+              "value": 1600,
+              "unit": "$/month",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calculated by Main.",
+              "relevant": true
+            },
+            {
+              "variable": "monthly_surplus",
+              "value": 800,
+              "unit": "$/month",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calculated by Main.",
+              "relevant": true
+            },
+            {
+              "variable": "projected_savings",
+              "value": 4100,
+              "unit": "$",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calculated by Main.",
+              "relevant": true
+            },
+            {
+              "variable": "affordability_status",
+              "value": "Yes",
+              "unit": "text",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calculated by Main.",
+              "relevant": true
+            }
+          ],
+          "status": "conditional",
+          "message": null,
+          "answer": {
+            "headline": "Yes. This fits the money available.",
+            "detail": "You can afford the $2,500 laptop by next March."
+          },
+          "missing_inputs": [],
+          "parameters": [],
+          "metrics": [],
+          "explanations": [
+            {
+              "label": "Main calculation",
+              "text": "900 + (2400 - (1000 + 600)) * 4 = 900 + 800 * 4 = 900 + 3200 = 4100, then compare 4100 >= 2500"
+            }
+          ],
+          "assumptions": [
+            {
+              "id": null,
+              "text": "Using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allowing 4 monthly saving periods.",
+              "parameter_key": null,
+              "review_label": null
+            }
+          ],
+          "limitations": [
+            "The answer is calculated by Main; independent verification is advisory."
+          ]
+        },
+        "calculation_seconds": 10.651601916993968
+      },
+      {
+        "extraction_status": 200,
+        "extraction": {
+          "assumptions": [
+            {
+              "variable": "monthly_income",
+              "value": 2400,
+              "unit": "$/month",
+              "source": "stated",
+              "source_detail": "question: I make $2,400 a month after tax"
+            },
+            {
+              "variable": "spending_entries",
+              "value": "[{\"name\": \"rent\", \"amount\": 1000, \"frequency\": \"monthly\"}, {\"name\": \"everything else\", \"amount\": 600, \"frequency\": \"monthly\"}]",
+              "unit": "text",
+              "source": "stated",
+              "source_detail": "question: rent is $1,000 and I spend about $600 on everything else"
+            },
+            {
+              "variable": "current_savings",
+              "value": 900,
+              "unit": "$",
+              "source": "stated",
+              "source_detail": "question: I have $900 saved"
+            },
+            {
+              "variable": "goal_amount",
+              "value": 2500,
+              "unit": "$",
+              "source": "stated",
+              "source_detail": "question: a $2,500 laptop"
+            },
+            {
+              "variable": "goal_deadline",
+              "value": "next March",
+              "unit": "text",
+              "source": "stated",
+              "source_detail": "question: by next March"
+            },
+            {
+              "variable": "affordability_status",
+              "value": null,
+              "unit": null,
+              "source": "missing",
+              "source_detail": "Requested target; not calculated during extraction."
+            },
+            {
+              "variable": "contribution_months",
+              "value": 4,
+              "unit": "months",
+              "source": "inferred",
+              "source_detail": "Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed."
+            }
+          ],
+          "clarification_questions": [],
+          "goal_summary": "User wants to know if they can afford a $2,500 laptop by next March.",
+          "confidence_note": "Income, expenses, and savings are provided, but the calculation of affordability status is required. Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed.",
+          "model": "savings_goal",
+          "target_variable": "affordability_status",
+          "supporting_targets": [],
+          "factors": [
+            {
+              "variable": "monthly_income",
+              "value": 2400,
+              "unit": "$/month",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I make $2,400 a month after tax",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "I make $2,400 a month after tax",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "spending_entries",
+              "value": "[{\"name\": \"rent\", \"amount\": 1000, \"frequency\": \"monthly\"}, {\"name\": \"everything else\", \"amount\": 600, \"frequency\": \"monthly\"}]",
+              "unit": "text",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: rent is $1,000 and I spend about $600 on everything else",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "rent is $1,000 and I spend about $600 on everything else",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "current_savings",
+              "value": 900,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: I have $900 saved",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "I have $900 saved",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "goal_amount",
+              "value": 2500,
+              "unit": "$",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: a $2,500 laptop",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "a $2,500 laptop",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "goal_deadline",
+              "value": "next March",
+              "unit": "text",
+              "role": "known",
+              "source": "stated",
+              "source_detail": "question: by next March",
+              "relevant": true,
+              "evidence": {
+                "source": "question",
+                "quote": "by next March",
+                "variable": null
+              },
+              "inference": null
+            },
+            {
+              "variable": "affordability_status",
+              "value": null,
+              "unit": null,
+              "role": "missing",
+              "source": "missing",
+              "source_detail": "Requested target; not calculated during extraction.",
+              "relevant": true,
+              "evidence": null,
+              "inference": null
+            },
+            {
+              "variable": "contribution_months",
+              "value": 4,
+              "unit": "months",
+              "role": "derived",
+              "source": "inferred",
+              "source_detail": "Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed.",
+              "relevant": true
+            }
+          ],
+          "routing": {
+            "model": "savings_goal"
+          },
+          "selection_state": {
+            "model": "savings_goal",
+            "revision": 0,
+            "history": [
+              {
+                "role": "user",
+                "content": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?"
+              }
+            ],
+            "active_question": "I make $2,400 a month after tax, rent is $1,000 and I spend about $600 on everything else. I have $900 saved. Can I afford a $2,500 laptop by next March?",
+            "reference_date": "2026-11-18",
+            "timezone": "America/New_York"
+          },
+          "assistant_message": "User wants to know if they can afford a $2,500 laptop by next March. Calendar assumption: using 2026-11-18 as the reference date and the end of March 2027 as the deadline, allow 4 monthly saving periods. No extra deposit is assumed for the current partial month. Correct the deadline or timing if needed."
+        },
+        "extraction_seconds": 5.555170500068925
+      }
+    ]
+  }
+}

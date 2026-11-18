@@ -41,9 +41,9 @@ class SavingsBreakdown(unittest.TestCase):
         self.assertEqual(json.loads(facts['spending_entries']['value']),ENTRIES)
         self.assertEqual(facts['goal_deadline']['value'],'next March')
         self.assertEqual(facts['spending_entries']['source'],'inferred')
-        with patch.object(o,'call_json') as main:r=o.calculate(wire(QUESTION,ex))
-        main.assert_not_called();self.assertEqual(len(r['missing_inputs']),1)
-        self.assertEqual(r['missing_inputs'][0]['variable'],'contribution_months')
+        self.assertEqual(ex['clarification_questions'],[])
+        self.assertEqual(facts['contribution_months']['value'],4)
+        self.assertTrue(facts['contribution_months']['source_detail'].startswith('Calendar assumption:'))
 
     def test_computed_totals_and_invented_durations_still_rejected(self):
         for output in [extracted(True),extracted()]:

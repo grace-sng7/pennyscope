@@ -102,25 +102,27 @@ def narrative(response,visuals,inputs,actual):
     if matched and visuals and visuals['kind']=='one_time':
         c=num(actual.get('required_monthly_savings',actual.get('monthly_savings',0)));n=inputs.get('months',actual.get('months'))
         start=num(inputs['current_savings']);goal=inputs.get('target')
-        text=f'You are starting with {money(start)} available for this plan. Setting aside {money(c)} each month for {n} months adds {money(c*int(n))}.'
-        if goal is not None and visuals.get('funding'):
-            f=visuals['funding'];draw=num(f['from_savings'])
-            text+=f" The plan uses {money(draw)} from your existing savings, leaving {money(start-draw)} of those savings untouched."
-            if num(f['short'])>0:text+=f" You would still be {money(f['short'])} short of the goal."
         if int(n)==0:
-            text=f"For a purchase today, you have {money(start)} available toward the {money(goal)} price." if goal is not None else f"You have {money(start)} available today."
+            text=f"For a purchase today, you have {money(start)} toward the {money(goal)} price." if goal is not None else f"You have {money(start)} available today."
             if visuals.get('funding') and num(visuals['funding']['short'])>0:text+=f" You need {money(visuals['funding']['short'])} more."
-        text+=(' Compare the options below or try changing one value.' if len(visuals.get('options',[]))>1 else ' Try changing the price or timing to explore another plan.')
+        elif goal is None:
+            text=f"Adding {money(c)} a month for {n} months brings your balance to {money(start+c*int(n))}."
+        else:
+            text=f"Saving {money(c)} a month for {n} months adds {money(c*int(n))}."
+            f=visuals.get('funding',{});draw=num(f.get('from_savings',0));short=num(f.get('short',0))
+            if short>0:text+=f" Even using your available savings, you would be {money(short)} short."
+            elif draw>0:text+=f" You would use {money(draw)} from savings to cover the rest."
+            else:text=f'At {money(c)} a month, you can save {money(c*int(n))} in {n} months without using your existing savings.'
         suggestions=([f'What if the price is {money(start)} instead?', 'What if I buy it later?'] if int(n)==0 else [f'What if I have {int(n)+1} months instead?',f'What if I save {money(max(Decimal(1),c*Decimal(".8")))} each month?'])
     elif matched and visuals and visuals['kind']=='recurring':
         b=visuals['budget_now'];a=visuals['budget_after'];change=num(a['goal'])
-        text=f"Your current budget leaves {money(b['left_over'])} each month. The additional {money(change)} monthly cost would leave {money(a['left_over'])}. "
-        text+=('That is your remaining monthly cushion after the new cost. Compare the two plans below before deciding.' if a['left_over']>=0 else 'That would create a monthly shortfall. Try a lower recurring cost to see what fits.')
+        text=f"The additional {money(change)} monthly cost takes your monthly cushion from {money(b['left_over'])} to {money(a['left_over'])}."
+        if a['left_over']<0:text+=' That would create a monthly shortfall.'
         full=num(inputs.get('spending_change',change))
         suggestions=[f'What if the new recurring cost is {money(full*Decimal(".9"))} per month?',f'What if I have {money(num(b["left_over"])+100)} left each month before the new cost?']
     else:
         detail=response.get('answer',{}).get('headline','')
-        text=detail+' This uses the information you supplied for the requested result.'
+        text=detail
         if response.get('verification',{}).get('status')=='mismatch':text+=' The independent check differs, so review the warning before relying on this result.'
         elif not matched:text+=' The independent check could not verify this result.'
         suggestions={'savings_goal':['What if I have one more month?','What if I save less each month?'],
@@ -133,6 +135,11 @@ def attach(response,draft,selection,req,facts,actual):
     """Best-effort only; never mutate the core response or require chart inputs."""
     if response.get('status') not in ('ready','conditional'):return response
     result=copy.deepcopy(response);visuals=None
+    actual=copy.deepcopy(actual) if actual else actual
+    if actual and actual.get('monthly_spending') is None and actual.get('monthly_savings') is not None:
+        native=(selection or {}).get('input_plan',{}).get('inputs',{})
+        if native.get('monthly_income') is not None and native.get('spending_entries'):
+            actual['monthly_spending']=str(num(native['monthly_income'])-num(actual['monthly_savings']))
     inputs=(selection or {}).get('input_plan',{}).get('inputs') or draft.get('inputs',{})
     try:
         if response.get('verification',{}).get('status')=='matched' and actual:
@@ -143,6 +150,11 @@ def attach(response,draft,selection,req,facts,actual):
     except (ValueError,TypeError,KeyError,ArithmeticError):visuals=None
     if visuals:result['visuals']=visuals
     result['narrative']=narrative(response,visuals,inputs,actual or {})
+    calendar_note=next((a.get('source_detail') for a in facts.values() if a.get('source_detail','').startswith('Calendar assumption:')),None)
+    if calendar_note:
+        import calendar_horizon
+        result['narrative']['text']+=' '+calendar_horizon.short_note(calendar_note)
+        result.setdefault('assumptions',[]).append({'id':'calendar-timing','text':calendar_note})
     proposed=draft.get('narrative')
     # A chart's narrative is assembled from its exact current-plan fields. A
     # free-form draft can otherwise relabel a known amount (e.g. call the $300
@@ -158,7 +170,7 @@ def attach(response,draft,selection,req,facts,actual):
             if differs:raise ValueError('Narrative target differs')
             if not isinstance(proposed.get('text'),str):raise ValueError('Invalid narrative text')
             text=proposed['text'].strip()
-            if not text or len(text)>1800 or '|' in text:raise ValueError('Not concise narrative')
+            if not text or len(text)>360 or len(text.split())>55 or '|' in text:raise ValueError('Not concise narrative')
             amounts=[]
             def collect(value):
                 if isinstance(value,bool):return
@@ -194,7 +206,7 @@ def attach_scoped(response,req):
     import json
     result=copy.deepcopy(response)
     if result.get('status') not in ('ready','conditional'):return result
-    result['narrative']={'text': 'Using the facts you supplied: '+next((e['text'] for e in result.get('explanations',[]) if e['label']=='Main calculation'),result['answer']['headline']), 'suggestions':[]}
+    result['narrative']={'text':'The calculation uses the amounts and timing you supplied.', 'suggestions':[]}
     facts={a['variable']:a.get('value') for a in req.get('assumptions',[]) if a.get('value') is not None}
     for f in result.get('factors',[]):
         if f.get('role')=='known':facts.setdefault(f['variable'],f.get('value'))
@@ -212,7 +224,7 @@ def attach_scoped(response,req):
         period={'weekly':'week','monthly':'month','daily':'day'}[frequency]
         result['visuals']={'kind':'deposits','period':period,'start':rounded(start),'amount':rounded(amount),
                            'timeline':[{'deposit':i,'balance':rounded(start+amount*i)} for i in range(1,count+1)]}
-        result['narrative']={'text':f'You start with {money(start)}. Your {count} deposits of {money(amount)}, one each {period}, add {money(amount*count)}. After the last deposit, your balance is {money(final)}.',
+        result['narrative']={'text':f'Your {count} deposits of {money(amount)}, one each {period}, add {money(amount*count)} to your starting {money(start)}.',
                              'suggestions':[f'What if I make {count+1} deposits instead?',f'What if I deposit {money(amount+10)} each {period}?']}
     except (ValueError,TypeError,KeyError,ArithmeticError):pass
     return result

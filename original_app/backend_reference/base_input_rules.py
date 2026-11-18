@@ -32,6 +32,21 @@ def normalize(raw,registry,question,correction=None,history=()):
             if evidence.get('source') in texts and not any(quote in t for t in texts[evidence['source']]):
                 for source in ('correction','question','history'):
                     if any(quote in t for t in texts[source]):evidence['source']=source;break
+        if name in ('income_entries','spending_entries') and value is not None:
+            try:entries=json.loads(value) if isinstance(value,str) else copy.deepcopy(value)
+            except (ValueError,TypeError):entries=None
+            if isinstance(entries,list):
+                quote=(evidence or {}).get('quote') or text
+                for entry in entries:
+                    if not isinstance(entry,dict):continue
+                    category=entry.get('category')
+                    # Providers also use category for user-supplied item labels.
+                    # Canonical fixed/variable classifications keep their strict
+                    # existing evidence checks; literal labels become names.
+                    if isinstance(category,str) and category.lower() not in ('fixed','variable') and re.search(r'(?<!\w)'+re.escape(category)+r'(?!\w)',quote,re.I):
+                        if not entry.get('name') or str(entry['name']).lower()==category.lower():
+                            entry['name']=entry.pop('category')
+                factor['value']=value=json.dumps(entries)
         if name in ARRAYS|OBJECTS and isinstance(value,(list,dict)):
             factor['value']=json.dumps(value)
         if name in ('participants','people') and isinstance(value,list):factor['value']=json.dumps(value)

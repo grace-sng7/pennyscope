@@ -598,3 +598,117 @@ width; no external LLM requests were made. Updated local backend remains on 8000
 frontend on 3000. Existing rendered messages retain their old response payload;
 start a new chat to request newly generated supporting content. Public deployment
 was not changed.
+
+### Calendar deadline and complete monthly spending (2026-11-18)
+
+The laptop prompt already supplies complete spending as rent plus everything
+else. Its repeated monthly-deposit question came from the old explicit-count-only
+calendar prerequisite, rather than a need for another contribution amount.
+Calendar month names / ISO dates now receive a deterministic saving-period
+assumption using selection_state.reference_date. A month-only deadline means the
+end of that month and excludes the current partial month; the chosen reference,
+deadline and count are visible in the summary and narrative. Literal extraction
+still cannot invent numeric durations. Vague phrases such as spring break and
+past/unparseable dates still require clarification. Explicit user counts override
+the assumption, and corrected dates regenerate it rather than retaining stale
+periods. Zero periods need no future contribution capacity.
+
+For the November 18 reference, next March means end of March 2027 with four monthly
+saving periods. Main computes rent 1000 + other spending 600 = monthly expenses
+1600, leaving 800 from income 2400. The plan is conditional on saving that remainder
+and using the available savings. Extraction now also rejects treating the 600
+'for everything else' as the complete monthly expense total, allowing its existing
+repair path to recover the literal breakdown. The presentation supports the
+existing expense-entry representation in the monthly budget chart.
+
+Validation: 162 backend tests and 25 root tests pass; frontend tests, ESLint and
+TypeScript pass. New mocked regressions cover the original question through Main
+and Python, month/date horizons, year rollover, vague dates, explicit overrides,
+corrections and rejection of partial spending as a total. No external provider
+was called. Main remains primary; Python verification remains advisory. These
+changes are local and have not been pushed.
+
+### Actual Bedrock / preview pipeline audit (2026-11-18)
+
+The prior mocked tests did not establish live provider compatibility. With the
+user's explicit approval, replayed the exact laptop question through the actual
+localhost:3002 Next proxy -> localhost:8000 backend -> AWS Bedrock. Baseline
+reproduced HTTP 200 with only income retained and false missing savings/goal/date/
+spending questions. A separate live factor trace showed both attempts actually
+returned savings 900, goal 2500, deadline next March, and the complete spending
+amounts. The rejected shape used category:'rent' / category:'everything else'.
+The validator interpreted every category as a fixed/variable classification;
+evidence validation then stopped at that early field. Later valid facts were
+never preserved, and the recovery response masked processing failure as missing
+user inputs. Tests using name:'rent' did not cover this provider output.
+
+Fixes: normalize a verbatim user-supported category label into name, while keeping
+fixed/variable classifications strict. Validate all evidence-bearing factors,
+retain valid facts on both sides of a rejected field, retain confirmations across
+the single repair, and send repair feedback identifying invalid factor IDs. Add
+sanitized rejection/recovery logs and processing_issues metadata. Recovery also
+retains calendar context. No raw prompts, values or credentials are added to logs.
+Invented labels, ownership and numeric values continue to be rejected.
+
+The first successful live calculation also revealed an unrequested inverse output
+with bad arithmetic despite a correct yes/no target. Strengthened the existing
+explicit-supporting-target instruction, and supplied Main a symbolic expression
+for savings affordability/projection. Code does not evaluate it as the primary
+calculation. The final live Main output used 900 + (2400 - (1000 + 600)) * 4 = 4100;
+it returned monthly spending1600, monthly surplus800 and affordabilityYes, with
+no unrequested inverse target. The independent check still compares only the
+requested final result and remains advisory.
+
+Final live validation: repeated extraction preserved all supplied facts with no
+clarification; actual /calculate returned conditional answer, matched verification,
+funding/monthly budget/timeline/options/narrative/suggestions. Captured baseline
+and final output in tests/regression_artifacts/backend_live_audit.json. Saved the
+actual rejected provider response as a regression fixture. Replayed final actual
+responses through real ChatApp handlers and adapters in both current main and the
+new Sketchbook UI checkout; the worksheet/cards retain all values and plots.
+These UI tests reuse the real recorded payload, not a second browser/provider run.
+167 backend tests pass; npm tests, ESLint and TypeScript checks pass. Changes remain
+local; backend8000 and preview3002 remain running. Broader model regressions remain
+offline; live verification in this audit is limited to the approved laptop example.
+
+### Concise Grace-style explanations (2026-11-18)
+
+Re-inspected Grace 086b79b: AnswerCard renders verdict, one narrative paragraph,
+relevant visuals, closed MathPanel and suggested questions. Her narration prompt
+asks for 3–5 short plain-language sentences. The integration's repeated input
+readback, multiple plan instructions and full calendar derivation made it longer.
+Savings/budget/scoped-deposit summaries now use one or two short core sentences;
+remove repeated balances and 'compare the options' filler. Keep a short material
+deadline assumption visible; the complete reference-date/count rule is retained
+as a calendar-timing assumption under the existing Show the math disclosure,
+rather than appending it to the paragraph or worksheet math. Charts, suggestions,
+Main's answer, verification and financial/input logic are unchanged. Initial
+calendar summary is short too. Optional provider narration has a 55-word/360-char
+limit so it cannot replace a concise fallback with a long paragraph.
+
+Validation: 168 backend tests pass, including an assertion using the recorded
+real laptop response that summary length is bounded, key figures/date remain,
+full timing details remain under assumptions, and answer/verification/visuals are
+preserved. npm tests, ESLint and TypeScript checks pass. No new provider call was
+needed for this presentation-only change. Backend restarted on 8000 for the
+existing preview on 3002. Existing rendered messages retain old payloads; a new
+chat receives the shortened output. Changes have not been pushed.
+
+
+### Integrated deployment checkpoint (2026-11-18)
+
+Branch: integration/sketchbook-agent-2026-11-18. Based on Sketchbook UI revision
+0160e01, with the current backend and live audit fixes from the main working copy.
+Includes independent chat/worksheet scrolling, contained answer/explanation/math,
+concise narration, and a first-visit yellow pulse/bounce for How it works. The
+first-visit nudge is remembered locally and respects reduced motion.
+
+Validation on the combined tree: 168 backend tests, 25 root tests, the complete
+frontend test suite, ESLint, TypeScript and a production Next.js build all pass.
+Neither main nor ui/sketchbook-redesign is overwritten by this checkpoint.
+Deploy this branch with original_app as the application root. Live mode requires
+NEXT_PUBLIC_BACKEND_MODE=live at frontend build time and a configured backend.
+Local .env / .secrets files and credentials are not committed. In particular,
+current Bedrock configuration reads server-local .secrets/aws_iam.json; a new
+cloud environment must supply equivalent server configuration before live calls
+will work. This checkpoint does not create a cloud deployment or set up secrets.

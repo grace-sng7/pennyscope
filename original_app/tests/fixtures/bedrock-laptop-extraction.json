@@ -1,0 +1,170 @@
+[
+  {
+    "stage": "factor_extraction",
+    "response": {
+      "target_variable": "affordability_status",
+      "supporting_targets": [
+        "months_to_goal",
+        "required_monthly_savings"
+      ],
+      "factors": [
+        {
+          "variable": "monthly_income",
+          "value": 2400,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user income",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I make $2,400 a month after tax",
+            "variable": "monthly_income"
+          }
+        },
+        {
+          "variable": "spending_entries",
+          "value": "[{\"amount\":1000,\"category\":\"rent\"},{\"amount\":600,\"category\":\"everything else\"}]",
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user expenses",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "rent is $1,000 and I spend about $600 on everything else",
+            "variable": "spending_entries"
+          }
+        },
+        {
+          "variable": "current_savings",
+          "value": 900,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user savings",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $900 saved",
+            "variable": "current_savings"
+          }
+        },
+        {
+          "variable": "goal_amount",
+          "value": 2500,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "laptop price",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Can I afford a $2,500 laptop",
+            "variable": "goal_amount"
+          }
+        },
+        {
+          "variable": "goal_deadline",
+          "value": "next March",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user deadline",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "by next March",
+            "variable": "goal_deadline"
+          }
+        }
+      ],
+      "goal_summary": "User wants to know if they can afford a $2,500 laptop by next March with their current income and expenses.",
+      "confidence_note": "The user has provided their income, expenses, and savings, which will be used to determine their affordability status and required monthly savings."
+    }
+  },
+  {
+    "stage": "factor_extraction",
+    "response": {
+      "target_variable": "affordability_status",
+      "supporting_targets": [
+        "months_to_goal",
+        "required_monthly_savings"
+      ],
+      "factors": [
+        {
+          "variable": "monthly_income",
+          "value": 2400,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user income",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I make $2,400 a month after tax",
+            "variable": null
+          }
+        },
+        {
+          "variable": "spending_entries",
+          "value": "[{\"amount\":1000,\"category\":\"rent\"},{\"amount\":600,\"category\":\"everything else\"}]",
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user expenses",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "rent is $1,000 and I spend about $600 on everything else",
+            "variable": null
+          }
+        },
+        {
+          "variable": "current_savings",
+          "value": 900,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user savings",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $900 saved",
+            "variable": null
+          }
+        },
+        {
+          "variable": "goal_amount",
+          "value": 2500,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "laptop price",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Can I afford a $2,500 laptop",
+            "variable": null
+          }
+        },
+        {
+          "variable": "goal_deadline",
+          "value": "next March",
+          "unit": "text",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "user deadline",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "by next March",
+            "variable": null
+          }
+        }
+      ],
+      "goal_summary": "User wants to know if they can afford a $2,500 laptop by next March with their current income and expenses.",
+      "confidence_note": "Extracted factors are based on user-provided information and may not reflect their complete financial situation."
+    }
+  }
+]

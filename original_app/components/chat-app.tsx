@@ -64,6 +64,7 @@ export default function ChatApp() {
   const [reviewedMath, setReviewedMath] = useState<{ snapshot: ExtractionResponse; response: CalculationResponse } | null>(null);
   const [params, setParams] = useState<Record<string, string>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [instructionsSeen, setInstructionsSeen] = useState(true);
   const [profile, setProfile] = useState<Profile>({});
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<Profile>({});
@@ -81,11 +82,24 @@ export default function ChatApp() {
   const retry = useRef<(() => Promise<void>) | null>(null);
   const calcSeq = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bottom = useRef<HTMLDivElement>(null);
+  const thread = useRef<HTMLElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (msgs.length) bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs]);
+  useEffect(() => {
+    // Scroll only the conversation; never move the header, composer or worksheet.
+    if (msgs.length && thread.current) thread.current.scrollTo({ top: thread.current.scrollHeight, behavior: 'smooth' });
+  }, [msgs]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => {
+    const key = 'pennyscope:instructions-nudge-seen';
+    try {
+      if (!localStorage.getItem(key)) {
+        setInstructionsSeen(false);
+        localStorage.setItem(key, '1');
+      }
+    } catch { setInstructionsSeen(false); }
+  }, []);
+  useEffect(() => { if (msgs.length) setInstructionsSeen(true); }, [msgs.length]);
   // Read the saved profile after mount (browser storage isn't available during server rendering).
   useEffect(() => { const p = loadProfile(); profileRef.current = p; setProfile(p); }, []);
   // Profile figures travel with every extract/correct request; the backend uses them as evidence.
@@ -312,10 +326,10 @@ export default function ChatApp() {
     <header className={s.header}>
       <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
-      <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
+      <div className={s.headerRight}><button type="button" className={`${s.sheetToggle} ${empty && !instructionsSeen && !sheetOpen ? s.instructionsPrompt : ''}`} onClick={() => { if (empty) setInstructionsSeen(true); setSheetOpen(o => !o); }} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
     </header>
     <div className={s.body}>
-      <main className={s.thread} aria-live="polite">
+      <main ref={thread} className={s.thread} aria-live="polite">
         {empty && <div className={s.welcome}><p className={s.kicker}>Can I afford it?</p><h1>What are you thinking about <span className={s.highlight}>buying or doing?</span></h1>
           <div className={s.heroAsk}><div className={s.mascot} aria-hidden="true"><span className={s.mascotBubble}>Rough numbers are fine!</span><Coin size={104} className={s.mascotCoin} /></div>{composer}</div>
           <section className={s.exampleSection} aria-labelledby="suggestions-heading"><h2 id="suggestions-heading" className={s.suggestionsHeading}>What you can ask</h2><div className={s.suggestions}>{SUGGESTIONS.map(t => <button key={t} type="button" onClick={() => pick(t)}>{t}</button>)}</div></section></div>}
@@ -329,7 +343,6 @@ export default function ChatApp() {
             {m.kind === 'answer' && <><PresentationBoundary resetKey={m.response} fallback={<PlainResult response={m.response} />}><AnswerCard response={m.response} interactive={m === lastAnswer} params={params} onParam={onParam} /></PresentationBoundary>
               <PresentationBoundary resetKey={m.response} fallback={null}><AnswerSupporting response={m.response} interactive={m === lastAnswer} disabled={busy} onAsk={send} /></PresentationBoundary></>}
           </div></div>)}
-        <div ref={bottom} />
       </main>
       <div id="working-sheet" className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : s.sheetHidden}`}><WorkingSheet intro={empty} extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
     </div>

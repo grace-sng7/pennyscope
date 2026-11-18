@@ -47,6 +47,8 @@ def _extract_branch(decision, question, reference_date, timezone, *, history=Non
     previous_factors=[]
     for a in (previous or {}).get('assumptions',[]):
         if a['variable'] not in registry.factors:continue
+        # Recompute calendar-derived periods after a corrected deadline.
+        if a['variable']=='contribution_months' and a.get('source_detail','').startswith('Calendar assumption:'):continue
         f={**metadata.get(a['variable'],{}),**a}
         f['role']='missing' if a['value'] is None else 'known'
         f.setdefault('relevant',True)

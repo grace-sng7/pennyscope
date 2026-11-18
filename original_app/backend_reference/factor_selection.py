@@ -52,6 +52,9 @@ split_method/method must use canonical labels equal, itemized, custom, or weight
 If income is stated every two weeks, select income_entries=[{amount,frequency:"biweekly"}]
 encoded as a JSON ARRAY string, NOT fixed_income, variable_income or monthly_income.
 The monthly bucket factors are only for amounts stated per month; do not convert.
+For income_entries and spending_entries, put user labels in name (rent, groceries, job).
+category is ONLY fixed or variable when the user explicitly supplies that classification.
+Preserve frequency when supplied; do not put an item name in category.
 Canonical units: $, $/month, $/week, $/biweekly, $/semimonthly, $/quarter, $/year,
 months, date, %, text, or null. USD/dollars means $. Do not calculate unit conversions.
 Entry/item/category/adjustment/shared-item/settlement collections are JSON-encoded ARRAYS,
@@ -85,6 +88,10 @@ by participants, sum items, annualize income, convert percentages or fill assume
 For a $120 bill and four people, retain 120 and 4; 30 is not supplied evidence.
 Approximate supplied amounts may be source=inferred, but computed/estimated new amounts
 are prohibited even if labeled inferred. Unknowns stay null; all target values stay null.
+For a question asking only whether a purchase is affordable by a deadline,
+supporting_targets must be empty. A deadline or a budget does not also request
+time-to-goal or required monthly saving. Include those only if the user separately
+asks how long or how much to save.
 Return target_variable, supporting_targets (other explicitly requested supported outputs from the SAME model), factors, goal_summary, confidence_note, matching the response schema.
 Semantic input rules: preserve named participants as a name array, not an invented
 count or anonymous IDs. Encode items with amount and shared_by. Use zero for an
@@ -145,13 +152,15 @@ def _literal_number(value):
         return int(number) if number==number.to_integral_value() else float(number)
     return value
 
-def select(registry, question, *, reference_date, timezone, history=None, profile=None, previous=None, correction=None, _repair=False):
+def select(registry, question, *, reference_date, timezone, history=None, profile=None, previous=None, correction=None, _repair=False, _confirmed=None, _feedback=None):
     context={'selected_model_registry':registry.selection_schema(),'user_question':question,
              'reference_date':reference_date,'timezone':timezone,'conversation':history or [],
              'financial_profile':{k:v for k,v in (profile or {}).items() if k in registry.factors},
              'previous_factors':previous or [],'user_correction':correction}
     if _repair:
-        context['validation_feedback']='Previous extraction failed evidence validation. Re-extract only supplied literals with verbatim evidence. Do not infer fixed/variable totals from rent, invent values or calculate differences. Use selected-registry replacement factors for replaced charges. Never sum separately supplied expenses into a known total: retain a complete breakdown in spending_entries when supported by the selected registry. Preserve date phrases verbatim; do not invent a duration.'
+        context['confirmed_factors']=_confirmed or []
+        context['invalid_factor_ids']=_feedback or []
+        context['validation_feedback']='Previous extraction failed evidence validation. Re-extract only supplied literals with verbatim evidence. Do not infer fixed/variable totals from rent, invent values or calculate differences. Use selected-registry replacement factors for replaced charges. Never sum separately supplied expenses into a known total: retain a complete breakdown in spending_entries when supported by the selected registry. Preserve date phrases verbatim; do not invent a duration. Use name for labels such as rent or groceries; category is reserved for explicitly stated fixed/variable classifications. Preserve every confirmed factor.'
     raw=gemini_gateway.call_json(FACTOR_PROMPT,json.dumps(context),stage='factor_extraction',response_schema=response_schema(registry))
     raw=base_input_rules.normalize(raw,registry,question,correction,history or [])
     validation_step='schema'
@@ -194,14 +203,30 @@ def select(registry, question, *, reference_date, timezone, history=None, profil
                 if isinstance(f.value,bool) or not isinstance(f.value,(int,float)):raise ValueError()
             if f.variable in ('split_method','method') and f.value not in ('equal','itemized','custom','weighted'):raise ValueError()
             if f.unit not in (None,'$','$/month','$/week','$/biweekly','$/semimonthly','$/quarter','$/year','months','weeks','date','%','text'):raise ValueError()
-        confirmed=[]
+        confirmed=list(_confirmed or [])
+        invalid=[]
         validation_step='evidence'
         for f in selection.factors:
-            f.evidence=extraction_evidence.validate(f,registry,question=question,correction=correction,
-                history=history or [],profile=context['financial_profile'],previous=previous or [],selected_factors=selection.factors)
+            try:
+                f.evidence=extraction_evidence.validate(f,registry,question=question,correction=correction,
+                    history=history or [],profile=context['financial_profile'],previous=previous or [],selected_factors=selection.factors)
+            except (ValueError,TypeError):
+                invalid.append(f.variable)
+                continue
             if f.evidence:
                 confirmed.append(f.model_dump())
                 f.source_detail=(f.evidence.source+': '+(f.evidence.quote or f.evidence.variable or '')) + ('; '+f.inference if f.inference else '')
+        # One invalid factor must not erase independently supported later facts.
+        confirmed=list({f['variable']:f for f in confirmed}.values())
+        if invalid:
+            LOGGER.warning('factor_evidence_rejected model=%s factors=%s',registry.model,','.join(invalid))
+            raise ValueError('Invalid factor evidence')
+        current={f.variable:f for f in selection.factors}
+        for retained in _confirmed or []:
+            if retained['variable']==selection.target_variable:continue
+            if retained['variable'] not in current or current[retained['variable']].value is None:
+                current[retained['variable']]=SelectedFactor.model_validate(retained)
+        selection.factors=list(current.values())
         # Verified ownership is the itemized representation, even if the LLM
         # called proportional fees "custom". No monetary value is derived here.
         if registry.model=='bill_split':
@@ -220,9 +245,12 @@ def select(registry, question, *, reference_date, timezone, history=None, profil
         LOGGER.warning('factor_validation_failed model=%s check=%s repair_used=%s',registry.model,validation_step,_repair)
         if validation_step=='evidence' and not _repair:
             return select(registry,question,reference_date=reference_date,timezone=timezone,
-                          history=history,profile=profile,previous=previous,correction=correction,_repair=True)
+                          history=history,profile=profile,previous=previous,correction=correction,_repair=True,
+                          _confirmed=locals().get('confirmed',[]),_feedback=locals().get('invalid',[]))
         error=HTTPException(502,'The selected factors did not match the selected model registry. Your information is preserved; please retry.')
-        error.confirmed_factors=locals().get('confirmed',[])
+        error.confirmed_factors=locals().get('confirmed',_confirmed or [])
+        error.invalid_factor_ids=locals().get('invalid',[])
+        error.validation_stage=validation_step
         error.selected_model=registry.model
         candidate=raw.get('target_variable') if isinstance(raw,dict) else None
         error.target_variable=candidate if candidate in registry.targets else None

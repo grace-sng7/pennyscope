@@ -30,6 +30,12 @@ function scene(extraction,result){return React.createElement('div',{className:'p
 for(const [extraction,result] of [[ex,response],[today.extraction,todayResponse]]){
  let tree;const old=console.error;console.error=()=>{};
  try{await act(async()=>{tree=renderer.create(scene(extraction,result));});}finally{console.error=old;}
+ const answer=tree.root.find(n=>typeof n.type==='function'&&n.type.name==='AnswerCard');
+ const explanation=answer.findAll(n=>n.type==='p'&&String(n.props.className).includes('answerExplanation'));
+ assert.equal(explanation.length,1,'the explanation stays inside the answer card');
+ assert.equal(explanation[0].props.children,result.narrative.text);
+ const support=tree.root.find(n=>typeof n.type==='function'&&n.type.name==='AnswerSupporting');
+ assert.equal(support.findAll(n=>n.type==='p'&&n.props.children===result.narrative.text).length,0,'no duplicated floating explanation');
  const output=JSON.stringify(tree.toJSON());assert.doesNotMatch(output,/Contribution entries|1 entries/);assert.equal(tree.root.findAllByType('table').length,0);
  if(result===response){assert.match(output,/every week/);assert.match(output,/8 deposits/);assert.match(output,/Savings timeline/);assert.match(output,/580/);assert.match(output,/480/);assert.equal(tree.root.findAll(n=>n.props?.['data-verification-warning']==='unverified').length,1);}
  else{assert.match(output,/Today/);assert.match(output,/150/);assert.match(output,/Where the money comes from/);assert.doesNotMatch(output,/Affordability status:/);}

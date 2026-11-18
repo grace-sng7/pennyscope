@@ -101,3 +101,20 @@ class AnswerPresentation(unittest.TestCase):
     def test_malformed_narrative_keeps_available_visuals_and_template(self):
         req,draft=savings_case();draft['narrative']={'primary_value':'Yes','text':123,'suggestions':'bad'}
         r,_=calculate_case((req,draft));self.assertIsNotNone(r['visuals']);self.assertIsInstance(r['narrative']['text'],str)
+
+    def test_summary_is_short_and_timing_working_stays_in_disclosure(self):
+        import json
+        record=json.loads((Path(__file__).parent/'regression_artifacts/backend_live_audit.json').read_text())
+        ex=record['after']['runs'][0]['extraction'];given={a['variable']:a for a in ex['assumptions']}
+        import answer_presentation as presentation
+        response=record['after']['runs'][0]['calculation']
+        inputs=dict(current_savings=900,monthly_income=2400,target=2500,months=4,spending_entries=[dict(name='rent',amount=1000),dict(name='everything else',amount=600)])
+        result=presentation.attach(response,{},dict(input_plan=dict(inputs=inputs)),{},given,dict(monthly_savings=800,months=4))
+        text=result['narrative']['text']
+        self.assertLessEqual(len(text.split()),45)
+        self.assertIn('$800',text);self.assertIn('March 2027',text)
+        self.assertNotIn('2026-11-18',text);self.assertNotIn('partial month',text)
+        self.assertNotIn('Compare the options',text)
+        self.assertTrue(any(e.get('id')=='calendar-timing' and '2026-11-18' in e['text'] for e in result['assumptions']))
+        self.assertEqual(result['answer'],response['answer']);self.assertEqual(result['verification'],response['verification'])
+        self.assertTrue(result['visuals']);self.assertEqual(len(result['narrative']['suggestions']),2)

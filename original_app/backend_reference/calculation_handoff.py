@@ -43,6 +43,8 @@ def add_required_context(response,original_question):
     This is the same registry/alternative selection used by resolve, not Grace's
     old universal savings checklist. Questions remain one per conversational turn.
     """
+    import calendar_horizon
+    response=calendar_horizon.annotate(response)
     model=response.get('model');target=response.get('target_variable')
     if not model or response.get('routing',{}).get('model') in ('gap','ambiguous','multiple'):return response
     registry=get_registry(model)
@@ -150,9 +152,23 @@ def matches(draft, selection):
 
 
 def primary_calculation_guide(selection):
-    """Symbolic item allocation only; Main evaluates all arithmetic itself."""
+    """Symbolic arithmetic plans only; Main evaluates all numbers itself."""
     plan=(selection or {}).get('input_plan',{})
     inputs=plan.get('inputs',{})
+    if plan.get('model')=='savings_goal' and inputs.get('solve_for') in ('affordability','future_balance'):
+        if inputs.get('monthly_savings') is not None:capacity=str(inputs['monthly_savings'])
+        elif inputs.get('monthly_income') is not None:
+            if inputs.get('monthly_spending') is not None:spending=str(inputs['monthly_spending'])
+            elif inputs.get('spending_entries') and all(e.get('frequency','monthly')=='monthly' for e in inputs['spending_entries']):
+                spending='('+' + '.join(str(e['amount']) for e in inputs['spending_entries'])+')'
+            else:return None
+            capacity=f"({inputs['monthly_income']} - {spending})"
+        elif inputs.get('months')==0:capacity='0'
+        else:return None
+        balance=f"{inputs['current_savings']} + {capacity} * {inputs['months']}"
+        return dict(projected_balance_expression=balance,
+                    target_comparison=f"({balance}) >= {inputs['target']}" if 'target' in inputs else None,
+                    instructions='Evaluate the supplied expression step by step. For affordability, compare the resulting balance with the price. Include monthly spending, monthly surplus and projected balance as derived factors where relevant. Do not solve inverse targets (required monthly saving or time to goal) unless the user separately asks them. Every displayed numeric equality must evaluate correctly.')
     if plan.get('model')!='bill_split' or inputs.get('method')!='itemized':return None
     terms={}
     for item in inputs.get('items',[])+inputs.get('shared_items',[]):

@@ -1,6 +1,7 @@
 """Run:  uvicorn main:app --reload --port 8000      (from this folder)
 Interactive docs & manual testing:  http://localhost:8000/docs
 """
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,6 +10,8 @@ import orchestration
 import chat_fallback
 import question_approach
 from contract import CalculateRequest, CalculateResponse, CorrectRequest, ExtractionResponse, ExtractRequest, ChatFallbackRequest, PlainChat
+
+LOGGER=logging.getLogger(__name__)
 
 app = FastAPI(title="Pennyscope backend")
 # The frontend talks to us through its own server (no CORS needed), but this makes /docs and direct tests easy.
@@ -27,7 +30,11 @@ def extract(req: ExtractRequest):
         return ExtractionResponse.model_validate(result).model_dump(exclude_unset=True)
     except Exception as exc:
         facts=getattr(exc,'confirmed_factors',[])
-        return chat_fallback.extraction_response(req.user_message,facts,model=getattr(exc,'selected_model',None),target_variable=getattr(exc,'target_variable',None))
+        invalid=getattr(exc,'invalid_factor_ids',[])
+        LOGGER.warning('extraction_recovery validation=%s invalid_factors=%s confirmed_count=%d',getattr(exc,'validation_stage',type(exc).__name__),','.join(invalid),len(facts))
+        result=chat_fallback.extraction_response(req.user_message,facts,model=getattr(exc,'selected_model',None),target_variable=getattr(exc,'target_variable',None),reference_date=req.reference_date,timezone=req.timezone)
+        result['processing_issues']=[dict(stage='factor_extraction',code='structured_recovery',invalid_factor_ids=invalid)]
+        return result
 
 
 @app.post("/correct", response_model=ExtractionResponse)
@@ -39,7 +46,7 @@ def correct(req: CorrectRequest):
         facts=[a.model_dump() for a in req.previous_extraction.assumptions]+getattr(exc,'confirmed_factors',[])
         return chat_fallback.extraction_response(req.user_message,facts,correction=req.user_correction,
             model=getattr(exc,'selected_model',None) or req.previous_extraction.model_extra.get('model'),
-            target_variable=getattr(exc,'target_variable',None) or req.previous_extraction.model_extra.get('target_variable'))
+            target_variable=getattr(exc,'target_variable',None) or req.previous_extraction.model_extra.get('target_variable'),reference_date=req.reference_date,timezone=req.timezone)
 
 
 @app.post("/calculate", response_model=CalculateResponse)

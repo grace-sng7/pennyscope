@@ -80,6 +80,7 @@ def respond(question,facts=(),*,correction=None,existing_main=None):
 
 def extraction_response(question,facts,*,model=None,target_variable=None,**kwargs):
     facts=confirmed(facts)
+    reference_date=kwargs.pop('reference_date',None);timezone=kwargs.pop('timezone',None)
     if model and target_variable:
         import calculation_handoff
         from factor_registry import get_registry
@@ -88,7 +89,8 @@ def extraction_response(question,facts,*,model=None,target_variable=None,**kwarg
         factors=[{**f,'role':'known','relevant':True} for f in facts]
         factors.append(dict(variable=target_variable,value=None,unit=None,source='missing',role='missing',source_detail='Requested result; not a user input.',relevant=True))
         base=dict(model=model,target_variable=target_variable,assumptions=facts,factors=factors,
-                  clarification_questions=[],goal_summary='Here is what is known and what is still needed.',confidence_note='A final answer needs the required user facts.',routing={'model':model})
+                  clarification_questions=[],goal_summary='Here is what is known and what is still needed.',confidence_note='A final answer needs the required user facts.',routing={'model':model},
+                  selection_state=dict(model=model,active_question=question,reference_date=reference_date,timezone=timezone,history=[{'role':'user','content':question}]))
         enriched=calculation_handoff.add_required_context(base,question+'\n'+(kwargs.get('correction') or ''))
         if enriched['clarification_questions']:return enriched
     return {'assumptions':facts,'clarification_questions':[],'goal_summary':'Your question and confirmed information are retained.',

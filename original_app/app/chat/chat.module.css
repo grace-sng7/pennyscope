@@ -13,12 +13,12 @@
   --font-ui: var(--font-nunito), ui-sans-serif, system-ui, sans-serif; --font-read: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
   --font-num: var(--font-kalam), var(--font-nunito), ui-sans-serif, sans-serif; --font-hand: var(--font-caveat), 'Comic Sans MS', cursive;
   --press: 2px 2px 0 #1D2333; --lift: 2px 2px 0 rgba(29, 35, 51, .12);
-  display: flex; flex-direction: column; height: 100dvh; background: var(--background); color: var(--ink-sb); font-family: var(--font-ui); font-size: 15px;
+  display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; background: var(--background); color: var(--ink-sb); font-family: var(--font-ui); font-size: 15px;
 }
 .page button { font-family: var(--font-ui); }
 
 /* Header */
-.header { display: flex; align-items: center; gap: 18px; padding: 10px 24px; border-bottom: 1.5px solid var(--ink-sb); background: var(--background); flex-wrap: wrap; }
+.header { flex: none; display: flex; align-items: center; gap: 18px; padding: 10px 24px; border-bottom: 1.5px solid var(--ink-sb); background: var(--background); flex-wrap: wrap; }
 .brand { display: inline-flex; align-items: center; gap: 2px; border: 0; background: none; padding: 4px 0; font-weight: 900; font-size: 21px; letter-spacing: -.4px; color: var(--ink-sb); }
 .brand:hover { background: none; }
 .brandCoin { margin-right: 8px; flex: none; }
@@ -34,11 +34,11 @@
 .headerRight button:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink-sb); }
 .headerRight .sheetToggle[aria-expanded='true'] { background: var(--note); }
 .sheetHidden { display: none; }
-.body { flex: 1; min-height: 0; display: flex; }
+.body { flex: 1; min-height: 0; min-width: 0; display: flex; overflow: hidden; }
 
 /* Thread */
-.thread { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 28px 12px; display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
-.thread > * { width: 100%; max-width: 784px; }
+.thread { flex: 1; min-width: 0; min-height: 0; max-width: none; margin: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 32px 28px 12px; display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.thread > * { flex-shrink: 0; width: 100%; max-width: 784px; }
 .row { display: flex; gap: 12px; align-items: flex-start; }
 .row.user { justify-content: flex-end; }
 .avatar { flex: none; width: 38px; height: 38px; margin-top: -3px; display: grid; place-items: center; }
@@ -90,7 +90,7 @@
 .whatIf { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
 .whatIf label { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; font-size: 14px; }
 .whatIf label input { grid-column: 1 / -1; margin: 6px 0 2px; }
-.math { border-top: 1px solid var(--rule); padding-top: 10px; font-size: 14px; }
+.math { border: 1px solid var(--edge); border-radius: 14px; background: var(--paper); padding: 16px 18px; font-size: 14px; }
 .math p { margin: 8px 0; }
 .link { border: 0; background: none; padding: 0; font-size: 14px; font-weight: 600; color: var(--pen); text-decoration: underline; text-underline-offset: 3px; }
 .link:hover { background: none; color: var(--pen-dark); }
@@ -136,7 +136,7 @@
 .planList .currentRow { background: #F1EFEA; border-radius: 12px; border-bottom-color: transparent; }
 
 /* Working sheet: ruled paper with punched holes and a red margin line */
-.sheetWrap { width: 360px; flex: none; border-left: 1.5px solid var(--ink-sb); overflow-y: auto; background-color: var(--paper);
+.sheetWrap { width: 360px; flex: none; min-height: 0; overflow-x: hidden; overscroll-behavior: contain; border-left: 1.5px solid var(--ink-sb); overflow-y: auto; background-color: var(--paper);
   background-image: radial-gradient(circle at 12px 16px, #FAF7F1 0 5px, #CFC6B6 5.5px 6.5px, transparent 7px), linear-gradient(to right, transparent 0 24px, var(--margin-red) 24px 25.5px, transparent 25.5px), repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px);
   background-size: 24px 32px, auto, auto; background-repeat: repeat-y, no-repeat, repeat; background-attachment: local; }
 .sheet { padding: 22px 22px 32px 38px; font-size: 14px; }
@@ -201,7 +201,7 @@
 .profileActions .primary:hover { background: var(--pen-dark); }
 
 /* Composer */
-.composer { display: flex; gap: 10px; align-items: flex-end; padding: 16px 28px 22px; max-width: 840px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.composer { flex: none; display: flex; gap: 10px; align-items: flex-end; padding: 16px 28px 22px; max-width: 840px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 .composer textarea { flex: 1; resize: none; font-family: var(--font-read); font-size: 16px; color: var(--ink-sb); background: var(--paper); border: 1.5px solid var(--ink-sb); border-radius: 14px; padding: 13px 16px; max-height: 160px; field-sizing: content; }
 .composer textarea::placeholder { color: var(--muted-sb); }
 .composer button { font-weight: 600; background: var(--pen); color: #fff; border: 0; border-radius: 14px; padding: 13px 22px; min-height: 50px; }
@@ -258,4 +258,22 @@
   .composerHero textarea { padding-right: 20px; padding-bottom: 72px; }
   .answerBox { padding: 28px 18px 18px; }
   .headline { font-size: 22px; }
+}
+
+/* Keep explanation typography, contained in the answer notebook. */
+.answerExplanation { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--rule); }
+
+/* A brief first-visit nudge; the yellow highlight remains until opened. */
+.headerRight .instructionsPrompt {
+  background: var(--note);
+  animation: instructionsGlow 1.5s ease-in-out 3; transform-origin: center;
+}
+@keyframes instructionsGlow {
+  0%, 100% { transform: translateY(0) scale(1); background-color: var(--note); box-shadow: var(--press); }
+  30% { transform: translateY(0) scale(1); background-color: var(--paper); box-shadow: var(--press); }
+  55% { transform: translateY(-5px) scale(1.05); background-color: var(--highlight); box-shadow: var(--press), 0 0 0 5px rgba(255, 229, 138, .45); }
+}
+.headerRight .instructionsPrompt:focus-visible { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .headerRight .instructionsPrompt { animation: none; }
 }

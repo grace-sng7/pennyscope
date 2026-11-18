@@ -693,3 +693,19 @@ A suggested hypothetical is not a supplied fact. Use only the selected model and
 requested target; budgets do not acquire savings deadlines and bills need no income.
 Presentation is optional: never withhold an answer because it lacks chart data.
 """
+
+
+MAIN += """
+CALENDAR AND COMPLETE SPENDING PRESENTATION:
+An inferred contribution_months with source_detail starting 'Calendar assumption:'
+is computed in code from the reference date and the user's calendar deadline.
+Use it as the monthly horizon; do not request a monthly deposit count again.
+Explain its stated timing assumption and keep the answer conditional on that
+schedule. Do not convert the user's deadline phrase into an extracted literal.
+If monthly income and a complete spending_entries breakdown are provided, Main
+must sum the spending, subtract it from income, and use that monthly capacity.
+For savings questions include the resulting monthly_expenses and monthly_surplus
+as derived factors and in results. Never ask for an additional contribution amount
+when this capacity is already known. Explain that using the remainder for the goal
+is a plan assumption, not a claim that the user has committed to deposit it.
+"""
