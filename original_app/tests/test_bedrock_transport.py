@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -30,6 +31,28 @@ class BedrockTransport(unittest.TestCase):
         self.assertEqual(request['modelId'],'test-model')
         self.assertNotIn('fake-secret',json.dumps(request))
         self.client.close.assert_called_once()
+
+    def test_environment_credentials_work_without_local_files(self):
+        environment = {'AWS_ACCESS_KEY_ID': 'env-id', 'AWS_SECRET_ACCESS_KEY': 'env-secret',
+                       'AWS_SESSION_TOKEN': 'env-token', 'AWS_REGION': 'us-west-2',
+                       'BEDROCK_MODEL_ID': 'bedrock/env-model'}
+        with patch.dict(os.environ, environment, clear=True), patch.object(Path, 'read_text', side_effect=AssertionError('local secrets must not be read')):
+            self.assertEqual(b.generate_json('s', 'p', None, 60), {'ok': True})
+        self.assertEqual(self.session.call_args.kwargs, dict(aws_access_key_id='env-id',
+            aws_secret_access_key='env-secret', aws_session_token='env-token', region_name='us-west-2'))
+        self.assertEqual(self.client.converse.call_args.kwargs['modelId'], 'env-model')
+
+    def test_missing_credentials_fail_before_provider_call(self):
+        with patch.dict(os.environ, {}, clear=True), patch.object(Path, 'read_text', side_effect=FileNotFoundError):
+            with self.assertRaisesRegex(ValueError, 'IAM credentials missing'):
+                b.generate_json('s', 'p', None, 60)
+        self.session.assert_not_called()
+
+    def test_missing_model_fails_before_provider_call(self):
+        with patch.dict(os.environ, {'AWS_ACCESS_KEY_ID': 'id', 'AWS_SECRET_ACCESS_KEY': 'secret'}, clear=True):
+            with self.assertRaisesRegex(ValueError, 'BEDROCK_MODEL_ID missing'):
+                b.generate_json('s', 'p', None, 60)
+        self.session.assert_not_called()
 
     def test_scoped_main_schema_is_not_mislabeled_as_extraction(self):
         from question_approach import Draft

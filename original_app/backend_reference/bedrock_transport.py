@@ -4,12 +4,20 @@ The shared stage gateway owns transient retries. Credentials never enter prompts
 logs, browser responses, or global bearer-token environment variables.
 """
 import json
+import os
 from pathlib import Path
 import boto3
 import httpx
 from botocore.config import Config
 from botocore.exceptions import (ClientError, ReadTimeoutError, ConnectTimeoutError,
                                   EndpointConnectionError)
+
+
+def _local_settings(path):
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        return {}
 
 
 def generate_json(system, prompt, schema, read_timeout):
@@ -21,13 +29,19 @@ def generate_text(system,prompt,read_timeout):
 
 
 def _generate(system, prompt, schema, read_timeout, *, json_output):
-    settings=json.loads((Path(__file__).resolve().parents[2]/'.secrets/aws_iam.json').read_text())
-    key=settings.get('aws_access_key_id','').strip()
-    secret=settings.get('aws_secret_access_key','').strip()
-    if not key or not secret:raise ValueError('IAM credentials missing')
-    session=boto3.Session(aws_access_key_id=key,aws_secret_access_key=secret,
-        aws_session_token=settings.get('aws_session_token','').strip() or None,
-        region_name=settings.get('region','us-east-1'))
+    # Production credentials come only from the server environment. Keep the
+    # ignored local settings file as an optional development fallback.
+    settings_path = Path(__file__).resolve().parents[2] / '.secrets/aws_iam.json'
+    environment_credentials = bool(os.environ.get('AWS_ACCESS_KEY_ID') or os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    settings = {} if environment_credentials else _local_settings(settings_path)
+    key = os.environ.get('AWS_ACCESS_KEY_ID', settings.get('aws_access_key_id', '')).strip()
+    secret = os.environ.get('AWS_SECRET_ACCESS_KEY', settings.get('aws_secret_access_key', '')).strip()
+    model = os.environ.get('BEDROCK_MODEL_ID', settings.get('model_id', '')).strip().removeprefix('bedrock/')
+    if not key or not secret: raise ValueError('IAM credentials missing')
+    if not model: raise ValueError('BEDROCK_MODEL_ID missing')
+    session = boto3.Session(aws_access_key_id=key, aws_secret_access_key=secret,
+        aws_session_token=os.environ.get('AWS_SESSION_TOKEN', settings.get('aws_session_token', '')).strip() or None,
+        region_name=os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION') or settings.get('region', 'us-east-1'))
     config=Config(connect_timeout=5,read_timeout=read_timeout,retries={'total_max_attempts':1},
                   auth_scheme_preference='sigv4')
     client=session.client('bedrock-runtime',config=config)
@@ -43,7 +57,7 @@ def _generate(system, prompt, schema, read_timeout, *, json_output):
             else:
                 instruction+='\nThis is factor extraction only for the already-selected registry. Preserve stated values and raw frequencies. Do not calculate, select a model or decide missing-input requirements. An unsolved target is null/missing, not a question to the user.'
     try:
-        result=client.converse(modelId=settings.get('model_id','').removeprefix('bedrock/'),
+        result=client.converse(modelId=model,
             system=[{'text':instruction}],messages=[{'role':'user','content':[{'text':prompt}]}],
             inferenceConfig={'maxTokens':4096,'temperature':0})
     except ClientError as exc:

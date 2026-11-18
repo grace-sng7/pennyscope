@@ -1,0 +1,37 @@
+{
+  "services": {
+    "backend": {
+      "root": "original_app/backend_reference/",
+      "framework": "fastapi",
+      "entrypoint": "main:app",
+      "buildCommand": "python prepare_deployment.py",
+      "functions": {
+        "main.py": {
+          "includeFiles": "{financial_tools.py,routing_prompt.txt}",
+          "maxDuration": 420
+        }
+      }
+    },
+    "frontend": {
+      "root": "original_app/",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "backend",
+          "format": "url",
+          "env": "BACKEND_URL"
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json"
+}
