@@ -10,9 +10,11 @@ import type { ExtractionResponse, ExtractionService } from '../lib/extraction';
 import { liveCalculationService, liveExtractionService, recoverPlainChat } from '../lib/http-services';
 import { calculationService as mockCalculation, extractionService as mockExtraction } from '../lib/services';
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
-import { label } from '../lib/workspace-model';
+import { label, money } from '../lib/workspace-model';
 import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
 import { Coin } from './coin';
+import { ProfilePanel } from './profile-panel';
+import { clearProfile, financialProfile, hasProfile, loadProfile, monthlyExpenses, saveProfile, type Profile } from '../lib/profile';
 import s from '../app/chat/chat.module.css';
 
 const live = process.env.NEXT_PUBLIC_BACKEND_MODE === 'live';
@@ -62,6 +64,9 @@ export default function ChatApp() {
   const [reviewedMath, setReviewedMath] = useState<{ snapshot: ExtractionResponse; response: CalculationResponse } | null>(null);
   const [params, setParams] = useState<Record<string, string>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [profile, setProfile] = useState<Profile>({});
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<Profile>({});
   const idRef = useRef(0);
   const exRef = useRef<ExtractionResponse | null>(null);
   const originalRef = useRef('');
@@ -81,6 +86,10 @@ export default function ChatApp() {
 
   useEffect(() => { if (msgs.length) bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  // Read the saved profile after mount (browser storage isn't available during server rendering).
+  useEffect(() => { const p = loadProfile(); profileRef.current = p; setProfile(p); }, []);
+  // Profile figures travel with every extract/correct request; the backend uses them as evidence.
+  const withProfile = () => { const fp = financialProfile(profileRef.current); return fp ? { financial_profile: fp } : {}; };
 
   const push = (m: NewMsg) => setMsgs(list => [...list.filter(x => !('kind' in x && x.kind === 'typing')), { ...m, id: ++idRef.current } as Msg]);
   const bot = (textValue: string, extra: { note?: string; replies?: string[]; verification?: CalculationResponse['verification'] } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
@@ -217,7 +226,7 @@ export default function ChatApp() {
       if (!before) {
         originalRef.current = message;
         const attempt = async () => {
-          const result = await extraction.extract({ ...context(), user_message: message });
+          const result = await extraction.extract({ ...context(), ...withProfile(), user_message: message });
           if (consumePlainExtraction(result)) return;
           setExtraction(result); setStage(0); push({ role: 'bot', kind: 'understood', extraction: result });
           await proceed(result);
@@ -236,7 +245,7 @@ export default function ChatApp() {
         const target = q && q.targets.length === 1 ? before.assumptions.find(a => a.variable === q.targets[0]) : undefined;
         const local = target ? parseSimpleAnswer(message, target.unit) : null;
         const next = target && local !== null ? applyLocalAnswer(before, target.variable, local, message)
-          : await extraction.correct({ ...context(), user_message: originalRef.current, previous_extraction: before, user_correction: q ? `Answering "${q.question}": ${message}` : plainQuestion.current ? `Answering "${plainQuestion.current}": ${message}` : message });
+          : await extraction.correct({ ...context(), ...withProfile(), user_message: originalRef.current, previous_extraction: before, user_correction: q ? `Answering "${q.question}": ${message}` : plainQuestion.current ? `Answering "${plainQuestion.current}": ${message}` : message });
         if (consumePlainExtraction(next)) return;
         plainQuestion.current = null;
         const diff = changes(before, next);
@@ -277,6 +286,16 @@ export default function ChatApp() {
   const lastAnswer = [...msgs].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
   const lastId = msgs.at(-1)?.id;
   const empty = msgs.length === 0;
+  const saved = hasProfile(profile);
+  const profileSummary = saved ? [profile.income !== undefined && `${money(profile.income)}/mo income`, monthlyExpenses(profile) !== undefined && `${money(monthlyExpenses(profile)!)}/mo spending`, profile.savings !== undefined && `${money(profile.savings)} saved`].filter(Boolean).join(' · ') : '';
+  const profileButton = <button type="button" className={`${s.profileButton} ${saved ? s.profileSaved : ''}`} disabled={busy} onClick={() => setProfileOpen(true)} aria-label={saved ? 'Your profile' : 'Set up profile'} title={saved ? 'Your profile' : 'Set up profile'}>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" /><path d="M4.8 19.5c1.3-3.4 4-5.2 7.2-5.2s5.9 1.8 7.2 5.2" /></svg>
+    {saved && <span className={s.profileBadge} aria-hidden="true"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M2 5.2 4.2 7.4 8 2.8" /></svg></span>}
+  </button>;
+  const changeProfile = (p: Profile) => {
+    profileRef.current = p; setProfile(p); setProfileOpen(false);
+    if (exRef.current) bot(hasProfile(p) ? 'Profile saved. I’ll use it from your next message.' : 'Profile cleared. I won’t use it from your next message.');
+  };
   // One composer: it sits in the home hero until the first message, then docks below the thread.
   const composer = <form className={`${s.composer} ${empty ? s.composerHero : ''}`} onSubmit={e => { e.preventDefault(); void send(text); }}>
     <textarea ref={input} rows={1} value={text} disabled={busy} placeholder={current.current ? 'Type your answer…' : ex ? 'Correct something or ask “what if…”' : 'Describe your goal and what you know…'}
@@ -288,7 +307,7 @@ export default function ChatApp() {
     <header className={s.header}>
       <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
-      <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>Working sheet</button><button type="button" onClick={reset}>New chat</button></div>
+      <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>Working sheet</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
     </header>
     <div className={s.body}>
       <main className={s.thread} aria-live="polite">
@@ -307,8 +326,10 @@ export default function ChatApp() {
           </div></div>)}
         <div ref={bottom} />
       </main>
-      <div className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} /></div>
+      <div className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
     </div>
     {!empty && composer}
+    {profileOpen && <ProfilePanel profile={profile} onClose={() => setProfileOpen(false)}
+      onSave={p => { saveProfile(p); changeProfile(p); }} onClear={() => { clearProfile(); changeProfile({}); }} />}
   </div>;
 }

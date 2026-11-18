@@ -5,7 +5,8 @@ export type AssumptionValue = number | string | null;
 export interface Assumption { variable: string; value: AssumptionValue; unit: string | null; source: Source; source_detail: string; [key: string]: unknown }
 export interface ClarificationQuestion { target_variable: string; question: string; why_it_matters: string; [key: string]: unknown }
 export interface ExtractionResponse extends ModelContext { chat_fallback?: PlainChat; assumptions: Assumption[]; clarification_questions: ClarificationQuestion[]; goal_summary: string; confidence_note: string; [key: string]: unknown }
-export interface ExtractRequest { user_message: string; reference_date: string; timezone: string }
+// financial_profile: optional facts from the user's saved profile (lib/profile.ts); the backend uses them as evidence.
+export interface ExtractRequest { user_message: string; reference_date: string; timezone: string; financial_profile?: Record<string, number> }
 export interface CorrectionRequest extends ExtractRequest { previous_extraction: ExtractionResponse; user_correction: string }
 export interface ExtractionService { extract(request: ExtractRequest): Promise<ExtractionResponse>; correct(request: CorrectionRequest): Promise<ExtractionResponse> }
 const object = (v:unknown): v is Record<string,unknown> => !!v && typeof v==='object' && !Array.isArray(v);

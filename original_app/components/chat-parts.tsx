@@ -9,6 +9,7 @@ import { factLabel, factText } from '../lib/fact-presentation';
 import { type CalculationResponse } from '../lib/calculation-contract';
 import type { Assumption, ExtractionResponse } from '../lib/extraction';
 import { money } from '../lib/workspace-model';
+import { fromProfile } from '../lib/profile';
 import s from '../app/chat/chat.module.css';
 
 export function show(a: Pick<Assumption, 'value' | 'unit'>): string {
@@ -24,12 +25,17 @@ export function show(a: Pick<Assumption, 'value' | 'unit'>): string {
 // Read-only summary of what the model understood. Clicking a chip pre-fills the composer, so
 // corrections happen in conversation rather than in form fields.
 export function Understood({ extraction, onPick }: { extraction: ExtractionResponse; onPick: (text: string) => void }) {
-  const groups = factorGroups(extractionFactors(extraction).filter(a => a.variable !== 'goal_description' && (extraction.factors || !(a.variable === 'monthly_surplus' && a.source === 'missing'))), extraction.target_variable);
+  const base = factorGroups(extractionFactors(extraction).filter(a => a.variable !== 'goal_description' && (extraction.factors || !(a.variable === 'monthly_surplus' && a.source === 'missing'))), extraction.target_variable);
+  // Values the backend took from the saved profile get their own group, right after what the user said.
+  const groups = base.flatMap(g => {
+    const mine = g.factors.filter(f => !fromProfile(f)), saved = g.factors.filter(fromProfile);
+    return [...(mine.length ? [{ ...g, key: g.source as string, factors: mine }] : []), ...(saved.length ? [{ ...g, key: 'profile', source: 'profile' as const, title: 'From your profile', factors: saved }] : [])];
+  });
   return <div>
     <p className={s.bubbleText}>{typeof extraction.assistant_message === 'string' && extraction.assistant_message.trim() ? extraction.assistant_message : extraction.goal_summary || 'Here is what I understood.'}</p>
-    {groups.map(g => <div key={g.source} className={s.chipGroup}>
+    {groups.map(g => <div key={g.key} className={s.chipGroup}>
       <span className={s.chipCaption} data-source={g.source}>{g.title}</span>
-      <div className={s.chips}>{g.factors.map(a => <button key={a.variable} type="button" className={`${s.chip} ${s[g.source]}`} title={`${a.source}: ${a.source_detail}`}
+      <div className={s.chips}>{g.factors.map(a => <button key={a.variable} type="button" className={`${s.chip} ${s[g.source === 'profile' ? 'fromProfile' : g.source]}`} title={`${a.source}: ${a.source_detail}`}
         onClick={() => onPick(`Actually, ${factLabel(a.variable).toLowerCase()} is `)}>
         <span>{factLabel(a.variable)}</span>{a.role !== 'missing' && <strong>{factText(a.value, a.unit, a.variable)}</strong>}</button>)}</div>
     </div>)}
@@ -81,21 +87,21 @@ function MathPanel({ response }: { response: CalculationResponse }) {
 }
 
 // Always-visible record of every value and where it came from: the "framework in the background".
-export function WorkingSheet({ extraction, math }: { extraction: ExtractionResponse | null; math: CalculationResponse | null }) {
+export function WorkingSheet({ extraction, math, profileSummary, onProfile }: { extraction: ExtractionResponse | null; math: CalculationResponse | null; profileSummary?: string; onProfile?: () => void }) {
   const factors = new Map(extraction ? extractionFactors(extraction).map(f => [f.variable, f]) : []);
   for (const factor of math?.factors ?? []) factors.set(factor.variable, factor);
   return <aside className={s.sheet} aria-label="Working sheet">
     <h2>Working sheet</h2>
-    {!extraction ? <SheetIntro /> : <ul>
-      {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={a.source} title={`${a.source}: ${a.source_detail}`}>
-        <span className={`${s.dot} ${s[a.source]}`} aria-label={a.source} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
-    {extraction && <p className={s.legend}><span className={`${s.dot} ${s.stated}`} /> stated <span className={`${s.dot} ${s.inferred}`} /> inferred <span className={`${s.dot} ${s.missing}`} /> missing</p>}
+    {!extraction ? <SheetIntro profileSummary={profileSummary} onProfile={onProfile} /> : <ul>
+      {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={fromProfile(a) ? 'profile' : a.source} title={`${fromProfile(a) ? 'from your profile' : a.source}: ${a.source_detail}`}>
+        <span className={`${s.dot} ${s[fromProfile(a) ? 'fromProfile' : a.source]}`} aria-label={fromProfile(a) ? 'from your profile' : a.source} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
+    {extraction && <p className={s.legend}><span className={`${s.dot} ${s.stated}`} /> stated <span className={`${s.dot} ${s.fromProfile}`} /> profile <span className={`${s.dot} ${s.inferred}`} /> inferred <span className={`${s.dot} ${s.missing}`} /> missing</p>}
     {math && (math.status === 'ready' || math.status === 'conditional') && math.explanations.length > 0 && <><h2>The math</h2>{math.explanations.map((e, i) => <p key={i} className={s.sheetMath}><strong>{e.label}</strong><br />{e.text}</p>)}</>}
   </aside>;
 }
 
 // Home-page version of the sheet: a sample of how values will appear, what the markings mean, and the flow.
-function SheetIntro() {
+function SheetIntro({ profileSummary, onProfile }: { profileSummary?: string; onProfile?: () => void }) {
   return <div className={s.sheetIntro}>
     <p className={s.sheetNote}>fills in as we talk. It looks like this:</p>
     <ul aria-label="Example working sheet">
@@ -105,11 +111,16 @@ function SheetIntro() {
     </ul>
     <dl className={s.keyList}>
       <div><dt><span className={`${s.dot} ${s.stated}`} aria-hidden="true" />You told me</dt><dd>straight from your words</dd></div>
+      <div><dt><span className={`${s.dot} ${s.fromProfile}`} aria-hidden="true" />Profile</dt><dd>saved on this device</dd></div>
       <div><dt><span className={`${s.dot} ${s.inferred}`} aria-hidden="true" />I worked out</dt><dd>my estimate, so check it</dd></div>
       <div><dt><span className={`${s.dot} ${s.missing}`} aria-hidden="true" />Still unknown</dt><dd>I still need it</dd></div>
     </dl>
     <h3 className={s.sheetSub}>How it goes</h3>
     <ol className={s.steps}><li>I show what I understood</li><li>A calculator does the math</li><li>You change anything, see it move</li></ol>
+    {onProfile && <div className={s.stickyNote}>
+      <p>{profileSummary ? <>Using your profile: {profileSummary}</> : 'Tired of typing your income and rent every time? Save them once.'}</p>
+      <button type="button" onClick={onProfile}>{profileSummary ? 'Edit profile' : 'Set up profile'}</button>
+    </div>}
   </div>;
 }
 
