@@ -7,9 +7,9 @@ import { money } from '../lib/workspace-model';
 import s from '../app/chat/chat.module.css';
 
 
-// Series colours by role (validated: blue/aqua/orange pass the CVD and normal-vision checks on light surfaces).
-const C = { income: '#2a78d6', savings: '#1baf7a', left: '#eb6834', short: 'transparent' } as const;
-const GREYS = ['#B9B4AA', '#CFCAC0', '#A39E94', '#DDD8CE', '#928D84'];
+// Colours live in chat.module.css (--chart-*) so the charts follow the page theme.
+const C = { income: 'var(--chart-income)', savings: 'var(--chart-savings)', left: 'var(--chart-left)', short: 'transparent' } as const;
+const GREYS = ['var(--chart-expense-1)', 'var(--chart-expense-2)', 'var(--chart-expense-3)', 'var(--chart-expense-4)', 'var(--chart-expense-5)'];
 
 type Segment = { key: string; label: string; value: number; color: string; hatch?: boolean; note?: string };
 

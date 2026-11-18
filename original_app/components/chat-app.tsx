@@ -12,6 +12,7 @@ import { calculationService as mockCalculation, extractionService as mockExtract
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
 import { label } from '../lib/workspace-model';
 import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
+import { Coin } from './coin';
 import s from '../app/chat/chat.module.css';
 
 const live = process.env.NEXT_PUBLIC_BACKEND_MODE === 'live';
@@ -78,7 +79,7 @@ export default function ChatApp() {
   const bottom = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs]);
+  useEffect(() => { if (msgs.length) bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const push = (m: NewMsg) => setMsgs(list => [...list.filter(x => !('kind' in x && x.kind === 'typing')), { ...m, id: ++idRef.current } as Msg]);
@@ -276,21 +277,27 @@ export default function ChatApp() {
   const lastAnswer = [...msgs].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
   const lastId = msgs.at(-1)?.id;
   const empty = msgs.length === 0;
+  // One composer: it sits in the home hero until the first message, then docks below the thread.
+  const composer = <form className={`${s.composer} ${empty ? s.composerHero : ''}`} onSubmit={e => { e.preventDefault(); void send(text); }}>
+    <textarea ref={input} rows={1} value={text} disabled={busy} placeholder={current.current ? 'Type your answer…' : ex ? 'Correct something or ask “what if…”' : 'Describe your goal and what you know…'}
+      onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(text); } }} aria-label="Message" />
+    <button type="submit" disabled={busy || !text.trim()}>Send</button>
+  </form>;
 
   return <div className={s.page}>
     <header className={s.header}>
-      <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><span aria-hidden="true">☀</span> Pennyscope</button>
+      <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
       <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>Working sheet</button><button type="button" onClick={reset}>New chat</button></div>
     </header>
     <div className={s.body}>
       <main className={s.thread} aria-live="polite">
-        {empty && <div className={s.welcome}><h1>What are you thinking about buying or doing?</h1>
-          <p>Tell me in your own words. I’ll show you what I understood, ask only what I need, then walk you through the numbers.</p>
+        {empty && <div className={s.welcome}><p className={s.kicker}>Can I afford it?</p><h1>What are you thinking about <span className={s.highlight}>buying or doing?</span></h1>
+          <div className={s.heroAsk}><div className={s.mascot} aria-hidden="true"><span className={s.mascotBubble}>Rough numbers are fine!</span><Coin size={104} className={s.mascotCoin} /></div>{composer}</div>
           <section className={s.exampleSection} aria-labelledby="suggestions-heading"><h2 id="suggestions-heading" className={s.suggestionsHeading}>What you can ask</h2><div className={s.suggestions}>{SUGGESTIONS.map(t => <button key={t} type="button" onClick={() => pick(t)}>{t}</button>)}</div></section></div>}
         {msgs.map(m => m.role === 'user'
           ? <div key={m.id} className={`${s.row} ${s.user}`}><div className={s.bubbleUser}>{m.text}</div></div>
-          : <div key={m.id} className={s.row}><span className={s.avatar} aria-hidden="true">☀</span><div className={m.kind === 'answer' ? s.resultMessage : s.bubble}>
+          : <div key={m.id} className={s.row}><span className={s.avatar} aria-hidden="true"><Coin size={38} /></span><div className={m.kind === 'answer' ? s.resultMessage : s.bubble}>
             {m.kind === 'typing' && <Typing />}
             {m.kind === 'text' && <><QuestionText text={m.text} verification={m.verification} />{m.note && <p className={s.note}>{m.note}</p>}
               {m.replies && m.id === lastId && <QuickReplies replies={m.replies} disabled={busy} onPick={send} />}</>}
@@ -302,10 +309,6 @@ export default function ChatApp() {
       </main>
       <div className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} /></div>
     </div>
-    <form className={s.composer} onSubmit={e => { e.preventDefault(); void send(text); }}>
-      <textarea ref={input} rows={1} value={text} disabled={busy} placeholder={current.current ? 'Type your answer…' : ex ? 'Correct something or ask “what if…”' : 'Describe your goal and what you know…'}
-        onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(text); } }} aria-label="Message" />
-      <button type="submit" disabled={busy || !text.trim()}>Send</button>
-    </form>
+    {!empty && composer}
   </div>;
 }
