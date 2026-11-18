@@ -3,7 +3,7 @@
 // Set BACKEND_URL in .env.local (see env.example).
 const ALLOWED = new Set(['extract', 'correct', 'calculate', 'chat-fallback']);
 export const dynamic = 'force-dynamic';
-export const maxDuration = 420;
+export const maxDuration = 300;
 
 // Best-effort per-IP limit on the two routes that call the LLM. In-memory, so it resets per server
 // instance; it stops accidental floods and casual abuse, not a determined attacker.
@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(process.env.BACKEND_API_KEY ? { 'x-api-key': process.env.BACKEND_API_KEY } : {}) },
       body: await request.text(),
-      signal: AbortSignal.timeout(400_000),
+      signal: AbortSignal.timeout(280_000),
       cache: 'no-store',
     });
     return new Response(await upstream.text(), { status: upstream.status, headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' } });

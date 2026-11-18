@@ -10,9 +10,9 @@
   an additional detected service for the legacy root `agent_app.py`.
 - Leave project-wide build/install/output overrides unset; use the per-service
   configuration and framework defaults. Frontend builds with `npm run build`.
-- Enable Fluid Compute. The existing frontend function duration and configured
-  backend duration are 420 seconds: use a plan supporting that limit (Pro or
-  Enterprise). Hobby's 300-second limit cannot accommodate this configuration.
+- Enable Fluid Compute. Both frontend and backend functions use a 300-second
+  limit compatible with Hobby. The Next.js proxy stops waiting for the backend
+  after 280 seconds, leaving time to return an error before Vercel terminates it.
 - Node.js: 22.x. The backend installs its own `requirements.txt`; do not select
   the root legacy application's requirements or run a persistent uvicorn server.
 

@@ -20,6 +20,15 @@ class DeploymentTests(unittest.TestCase):
         self.assertEqual((binding['service'], binding['env']), ('backend', 'BACKEND_URL'))
         self.assertEqual(config['rewrites'][0]['destination'], {'service': 'frontend'})
 
+    def test_hobby_duration_limits_and_proxy_headroom(self):
+        config = json.loads((ROOT / 'vercel.json').read_text())
+        for service in config['services'].values():
+            for function in service.get('functions', {}).values():
+                self.assertLessEqual(function.get('maxDuration', 300), 300)
+        proxy = (ROOT / 'original_app/app/api/backend/[action]/route.ts').read_text()
+        self.assertIn('export const maxDuration = 300;', proxy)
+        self.assertIn('AbortSignal.timeout(280_000)', proxy)
+
     def test_staged_backend_imports_without_repository_or_secrets(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

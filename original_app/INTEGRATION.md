@@ -116,7 +116,7 @@ Transient HTTP 429/500/502/503/504, HTTPX timeout and connection failures get up
 (base 0.75s, cap 3s). Retry-After seconds and HTTP dates are respected; a delay
 that exceeds the remaining stage budget stops rather than retrying early.
 There is a 190s scheduling budget per stage, with up to 60 seconds for each
-AI response read. The proxy allows 400 seconds and the browser allows 420 seconds
+AI response read. The proxy allows 280 seconds and the browser allows 420 seconds
 so the two-stage calculation review can finish before either gives up. Permanent
 4xx errors and malformed output are not transport-retried.
 
@@ -157,7 +157,7 @@ for the additive metadata, with the original envelopes retained.
 AI response reads now allow 60 seconds (previously 6), while connection, write and
 pool timeouts remain bounded separately. Retries still apply only to the failed
 stage, with at most three attempts and a 190-second scheduling budget per stage.
-The Next.js proxy allows 400 seconds and the browser 420 seconds. A slow request
+The Next.js proxy allows 280 seconds and the browser 420 seconds. A slow request
 may therefore remain pending for several minutes rather than failing early.
 
 The saved .secrets/bedrock.json was tested directly against Bedrock Converse in

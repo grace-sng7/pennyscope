@@ -8,7 +8,7 @@
       "functions": {
         "main.py": {
           "includeFiles": "{financial_tools.py,routing_prompt.txt}",
-          "maxDuration": 420
+          "maxDuration": 300
         }
       }
     },
