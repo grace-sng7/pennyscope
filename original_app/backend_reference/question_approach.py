@@ -110,6 +110,9 @@ def calculate(req):
                     'verification':chat_fallback.unverified(draft.target_variable)}
             result['verification']['main_value']=target.value
             result['verification']['unit']=target.unit
+        import answer_presentation
+        try:result=answer_presentation.attach_scoped(result,req)
+        except Exception:pass # Optional presentation never discards Main's answer.
         return CalculateResponse.model_validate(result).model_dump(exclude_unset=True)
     except (ValueError,TypeError,KeyError,StopIteration):
         # Card metadata must not discard an otherwise usable Main answer.

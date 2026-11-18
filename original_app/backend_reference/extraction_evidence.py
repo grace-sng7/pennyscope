@@ -60,6 +60,17 @@ def _same(a,b):
     return decoded(a)==decoded(b)
 
 
+def _contribution_supported(value,text,surplus=False):
+    """The same literal in an earnings clause is not a savings commitment."""
+    relation=r'\b(?:surplus|left(?: over)?|remain\w*)\b|\bafter\b.{0,35}\bexpenses\b'
+    if not surplus:
+        relation+=r'|\b(?:save|saves|saving|contribut\w*|deposit\w*|spare)\b|\bset(?:ting)?\b.{0,35}\baside\b|\bput(?:ting)?\b.{0,40}\b(?:aside|towards?)\b|\bsaved\b.{0,35}\bmonth'
+    for clause in re.split(r'\b(?:and|but)\b|[;!?]|\.(?!\d)',text.replace('’',"'"),flags=re.I):
+        if re.search(r"\b(?:can't|cannot|don't|do not|won't|never|not sure|unsure)\b",clause,re.I):continue
+        if all(n in numbers(clause) for n in numeric_leaves(value)) and re.search(relation,clause,re.I):return True
+    return False
+
+
 def _person(name):
     text=str(name).strip().lower().replace('’', "'")
     return 'me' if text in ('i','me','my','myself','user','the user','speaker','you') else text
@@ -201,6 +212,8 @@ def validate(factor, registry, *, question, correction, history, profile, previo
             supplied.add(required[0]);contextual=True
         if not all(n in supplied for n in required):continue
         all_user='\n'.join(text_sources['question']+text_sources['correction']+text_sources['history'])
+        if registry.model in ('savings_goal','budget_cash_flow') and factor.variable in ('monthly_contribution','monthly_savings','monthly_surplus'):
+            if not _contribution_supported(factor.value,text,surplus=factor.variable=='monthly_surplus'):continue
         if factor.variable in ('participants','people') and isinstance(decoded(factor.value),list):
             names=decoded(factor.value)
             if not all((_person(name)=='me' and re.search(r'\b(?:I|me|my|us|we)\b',all_user,re.I)) or (_person(name)!='me' and re.search(r'\b'+re.escape(str(name))+r'\b',all_user,re.I)) for name in names):continue

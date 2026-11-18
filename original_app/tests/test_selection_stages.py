@@ -56,14 +56,14 @@ class SelectionStages(unittest.TestCase):
         with patch.object(e,'get_registry',side_effect=lookup),patch('gemini_gateway.call_json',side_effect=llm):e.extract('I contribute $200 monthly toward $3000. How long?','2026-11-10','UTC')
         self.assertEqual(events,['model_routing','python_registry','factor_extraction'])
 
-    def test_all_declared_targets_are_accepted_without_running_requirements(self):
+    def test_all_declared_targets_are_accepted_with_code_selected_input_questions(self):
         for model,registry in REGISTRIES.items():
             for target in registry.targets:
                 with patch('gemini_gateway.call_json',side_effect=[{'model':model},selected(target,{})]) as llm:
                     result=e.extract('Interpret this target','2026-11-10','UTC')
                 self.assertEqual(result['target_variable'],target)
                 self.assertEqual(llm.call_count,2)
-                self.assertEqual(result['clarification_questions'],[])
+                self.assertTrue(all(q['target_variable']!=result['target_variable'] and q.get('required') for q in result['clarification_questions']))
 
     def test_gap_ambiguous_multiple_stop_before_factor_selection(self):
         cases=[{'model':'gap'},{'model':'ambiguous','clarification':'Do you mean a purchase or shared allocation?'},{'model':'multiple','models':['budget_cash_flow','debt_repayment']}]
@@ -134,7 +134,7 @@ class SelectionStages(unittest.TestCase):
         self.assertEqual(llm.call_count,2)
         target=next(f for f in result['factors'] if f['variable']=='projected_surplus')
         self.assertIsNone(target['value']);self.assertEqual(target['role'],'missing')
-        self.assertEqual(result['clarification_questions'],[])
+        self.assertEqual([q['target_variable'] for q in result['clarification_questions']],['monthly_surplus'])
 
     def test_bad_structured_shape_is_rejected_without_calculation(self):
         output=selected('monthly_surplus',{'income_entries':{'amount':900,'frequency':'biweekly'}})
@@ -148,7 +148,7 @@ class SelectionStages(unittest.TestCase):
         output=selected('months_to_goal',{'monthly_contribution':200,'goal_amount':3000})
         with patch('gemini_gateway.call_json',side_effect=[{'model':'savings_goal'},output]):
             result=e.extract('I contribute $200 monthly toward $3000. How long?','2026-11-10','UTC')
-        self.assertEqual(result['clarification_questions'],[])
+        self.assertEqual([q['target_variable'] for q in result['clarification_questions']],['current_savings'])
         self.assertNotIn('goal_deadline',{f['variable'] for f in result['factors']})
 
 
@@ -199,7 +199,7 @@ class SelectionStages(unittest.TestCase):
             with patch('gemini_gateway.call_json',side_effect=[{'model':model,'transition':'new'},selected(target,values)]) as llm:
                 result=e.correct('old','2026-11-10','UTC',previous,message)
             self.assertEqual([c.kwargs['stage'] for c in llm.call_args_list],['model_routing','factor_extraction'])
-            self.assertNotIn('monthly_spending',{f['variable'] for f in result['factors']})
+            self.assertTrue(all(f['value'] is None for f in result['factors'] if f['variable']=='monthly_spending'),'Prior spending amount must not leak into a new intent')
             context=json.loads(llm.call_args.args[1])
             self.assertFalse(context.get('previous_factors'))
             self.assertEqual(result['model'],model)

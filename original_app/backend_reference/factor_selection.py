@@ -40,6 +40,14 @@ Use numbers for supplied amounts/counts/durations, not strings such as "5 months
 Interpreting "five months" as value=5/unit=months is allowed; date arithmetic is not.
 APR percentages retain the stated percentage number: "8% APR" is value=8, unit="%",
 NOT 0.08. Never divide a percentage by 100 in extraction. Amount "$200" is value=200.
+Earnings ("I earn", "I'm earning", "I make", salary or pay) are monthly_income,
+NEVER monthly_contribution or monthly_surplus unless the user explicitly says
+that amount is saved, deposited, set aside, or left AFTER expenses. Unknown
+spending and savings remain unknown. "Not sure" or "skip" is not estimate consent.
+For "Can I afford this by spring break?" select affordability_status; do not
+change the question into months_to_goal merely because its horizon is unknown.
+Preserve spring break as calendar wording and let code ask for a contribution
+horizon. Do not invent a trip price or any personal financial balance.
 split_method/method must use canonical labels equal, itemized, custom, or weighted.
 If income is stated every two weeks, select income_entries=[{amount,frequency:"biweekly"}]
 encoded as a JSON ARRAY string, NOT fixed_income, variable_income or monthly_income.
@@ -64,6 +72,11 @@ recurring_cost is the new full monthly charge, replaced_recurring_cost is the ol
 monthly charge that stops. Never compute their difference during extraction.
 Example: moving to $1400/month from $1000 rent means recurring_cost=1400 and
 replaced_recurring_cost=1000. Neither is a total monthly expense amount.
+For replaced_recurring_cost, the evidence quote MUST include the OLD amount
+itself, including when that amount appears inside "all expenses including rent".
+Do not quote only the sentence about the new charge. Quote the full user message
+if separate sentences are needed. A stated monthly surplus is already sufficient
+budget evidence; unknown income and expense totals are not required in that form.
 For entries omit category when the user did not explicitly classify it; don't invent tags.
 For EVERY known factor include evidence={source:question|correction|history|profile|previous,
 quote:verbatim supporting text,variable:stored factor ID if using profile/previous}.
@@ -210,4 +223,7 @@ def select(registry, question, *, reference_date, timezone, history=None, profil
                           history=history,profile=profile,previous=previous,correction=correction,_repair=True)
         error=HTTPException(502,'The selected factors did not match the selected model registry. Your information is preserved; please retry.')
         error.confirmed_factors=locals().get('confirmed',[])
+        error.selected_model=registry.model
+        candidate=raw.get('target_variable') if isinstance(raw,dict) else None
+        error.target_variable=candidate if candidate in registry.targets else None
         raise error from None

@@ -137,6 +137,16 @@ def main_response(draft,facts):
         if unit.startswith('$'):return '$'+format(numeric(v).quantize(Decimal('.01'),rounding=ROUND_HALF_UP),',.2f')+(' / month' if unit=='$/month' else '')
         return str(v)+(' '+unit if unit not in ('text','') else '')
     headline=target.replace('_',' ').capitalize()+': '+format_final(value)
+    # Preserve Main's useful affordability sentence rather than reducing it to
+    # an internal target label. Its yes/no verdict must match Main's target.
+    if target=='affordability_status':
+        import re
+        proposed=draft.get('headline','').strip()
+        verdict='yes' if str(value).lower() in ('yes','true') else 'no'
+        if proposed and len(proposed)<=400 and '|' not in proposed and re.match(verdict+r'\b',proposed,re.I):
+            headline=proposed
+        else:
+            headline=('Yes' if verdict=='yes' else 'No')+('. This fits the money available.' if verdict=='yes' else '. This exceeds the money available.')
     response=dict(status='conditional',model=draft['model'],target_variable=target,factors=factors,
                   answer={'headline':headline},parameters=[],metrics=[],explanations=[],
                   assumptions=[{'text':s} for s in draft.get('assumptions',[]) if isinstance(s,str)],

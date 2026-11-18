@@ -1,7 +1,7 @@
 """Explicit routing -> Python registry lookup -> factor extraction.
 
-No calculator, missing-input checker, primary-answer prompt or Inspector runs
-here. Existing downstream endpoints retain their own responsibilities.
+Registry input requirements annotate the extraction with required unknowns.
+No calculator, primary-answer prompt or Inspector runs here.
 """
 from fastapi import HTTPException
 import hashlib
@@ -68,6 +68,8 @@ def _extract_branch(decision, question, reference_date, timezone, *, history=Non
         'goal_summary':selection.goal_summary,'confidence_note':selection.confidence_note,
         'routing':decision.model_dump(exclude_defaults=True),
         'selection_state':{'model':registry.model,'revision':revision,'history':messages[-12:],'active_question':question,'reference_date':reference_date,'timezone':timezone}}
+    import calculation_handoff
+    response=calculation_handoff.add_required_context(response,question)
     return ExtractionResponse.model_validate(response).model_dump(exclude_unset=True)
 
 

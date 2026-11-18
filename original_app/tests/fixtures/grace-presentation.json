@@ -1,0 +1,646 @@
+[
+  {
+    "name": "savings",
+    "request": {
+      "original_question": "I earn $2000 after tax monthly, spend $1650 monthly and have $1200 available for a $3000 goal in eight months. Can I afford it?",
+      "assumptions": [
+        {
+          "variable": "monthly_income",
+          "value": 2000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": 1650,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "current_savings",
+          "value": 1200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "goal_amount",
+          "value": 3000,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 8,
+          "unit": "months",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        }
+      ],
+      "extraction_meta": {
+        "model": "savings_goal",
+        "target_variable": "affordability_status",
+        "selection_state": {
+          "reference_date": "2026-11-17"
+        }
+      }
+    },
+    "response": {
+      "narrative": {
+        "text": "You are starting with $1,200 available for this plan. Setting aside $350 each month for 8 months adds $2,800. The plan uses $200 from your existing savings, leaving $1,000 of those savings untouched. Compare the options below or try changing one value.",
+        "suggestions": [
+          "What if I have 9 months instead?",
+          "What if I save $280 each month?"
+        ]
+      },
+      "visuals": {
+        "kind": "one_time",
+        "options": [
+          {
+            "label": "Current plan",
+            "current": true,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 350.0,
+            "from_savings": 200.0,
+            "savings_left": 1000.0,
+            "short": 0.0
+          },
+          {
+            "label": "Lower monthly saving, using available savings",
+            "current": false,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 225.0,
+            "from_savings": 1200.0,
+            "savings_left": 0.0,
+            "short": 0.0
+          },
+          {
+            "label": "Keep existing savings untouched",
+            "current": false,
+            "feasible": false,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 375.0,
+            "from_savings": 0.0,
+            "savings_left": 1200.0,
+            "short": 200.0
+          }
+        ],
+        "base_date": "2026-11-17",
+        "funding": {
+          "goal": 3000.0,
+          "from_income": 2800.0,
+          "from_savings": 200.0,
+          "short": 0.0
+        },
+        "timeline": [
+          {
+            "month": 1,
+            "set_aside": 350.0
+          },
+          {
+            "month": 2,
+            "set_aside": 700.0
+          },
+          {
+            "month": 3,
+            "set_aside": 1050.0
+          },
+          {
+            "month": 4,
+            "set_aside": 1400.0
+          },
+          {
+            "month": 5,
+            "set_aside": 1750.0
+          },
+          {
+            "month": 6,
+            "set_aside": 2100.0
+          },
+          {
+            "month": 7,
+            "set_aside": 2450.0
+          },
+          {
+            "month": 8,
+            "set_aside": 2800.0
+          }
+        ],
+        "budget": {
+          "income": 2000.0,
+          "expenses": [
+            {
+              "label": "Expenses",
+              "amount": 1650.0
+            }
+          ],
+          "goal": 350.0,
+          "left_over": 0.0,
+          "basis": "income"
+        }
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "affordability_status",
+        "main_value": "Yes",
+        "python_value": true,
+        "unit": "text",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "savings_goal",
+      "target_variable": "affordability_status",
+      "factors": [
+        {
+          "variable": "affordability_status",
+          "value": "Yes",
+          "unit": "text",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Affordability status: Yes",
+        "detail": "Main answer"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "Main arithmetic"
+        }
+      ],
+      "assumptions": [],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "name": "savings_followup",
+    "request": {
+      "original_question": "I earn $2000 after tax monthly, spend $1650 monthly and have $1200 available for a $3000 goal in eight months. Can I afford it?",
+      "assumptions": [
+        {
+          "variable": "monthly_income",
+          "value": 2000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": 1650,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "current_savings",
+          "value": 1200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "goal_amount",
+          "value": 3000,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 9,
+          "unit": "months",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        }
+      ],
+      "extraction_meta": {
+        "model": "savings_goal",
+        "target_variable": "affordability_status",
+        "selection_state": {
+          "reference_date": "2026-11-17"
+        }
+      }
+    },
+    "response": {
+      "narrative": {
+        "text": "You are starting with $1,200 available for this plan. Setting aside $350 each month for 9 months adds $3,150. The plan uses $0 from your existing savings, leaving $1,200 of those savings untouched. Compare the options below or try changing one value.",
+        "suggestions": [
+          "What if I have 10 months instead?",
+          "What if I save $280 each month?"
+        ]
+      },
+      "visuals": {
+        "kind": "one_time",
+        "options": [
+          {
+            "label": "Current plan",
+            "current": true,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 9,
+            "budget_checked": true,
+            "monthly": 350.0,
+            "from_savings": 0.0,
+            "savings_left": 1200.0,
+            "short": 0.0
+          },
+          {
+            "label": "Lower monthly saving, using available savings",
+            "current": false,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 9,
+            "budget_checked": true,
+            "monthly": 200.0,
+            "from_savings": 1200.0,
+            "savings_left": 0.0,
+            "short": 0.0
+          },
+          {
+            "label": "Keep existing savings untouched",
+            "current": false,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 9,
+            "budget_checked": true,
+            "monthly": 333.34,
+            "from_savings": 0.0,
+            "savings_left": 1200.0,
+            "short": 0.0
+          }
+        ],
+        "base_date": "2026-11-17",
+        "funding": {
+          "goal": 3000.0,
+          "from_income": 3000.0,
+          "from_savings": 0.0,
+          "short": 0.0
+        },
+        "timeline": [
+          {
+            "month": 1,
+            "set_aside": 350.0
+          },
+          {
+            "month": 2,
+            "set_aside": 700.0
+          },
+          {
+            "month": 3,
+            "set_aside": 1050.0
+          },
+          {
+            "month": 4,
+            "set_aside": 1400.0
+          },
+          {
+            "month": 5,
+            "set_aside": 1750.0
+          },
+          {
+            "month": 6,
+            "set_aside": 2100.0
+          },
+          {
+            "month": 7,
+            "set_aside": 2450.0
+          },
+          {
+            "month": 8,
+            "set_aside": 2800.0
+          },
+          {
+            "month": 9,
+            "set_aside": 3150.0
+          }
+        ],
+        "budget": {
+          "income": 2000.0,
+          "expenses": [
+            {
+              "label": "Expenses",
+              "amount": 1650.0
+            }
+          ],
+          "goal": 350.0,
+          "left_over": 0.0,
+          "basis": "income"
+        }
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "affordability_status",
+        "main_value": "Yes",
+        "python_value": true,
+        "unit": "text",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "savings_goal",
+      "target_variable": "affordability_status",
+      "factors": [
+        {
+          "variable": "affordability_status",
+          "value": "Yes",
+          "unit": "text",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Affordability status: Yes",
+        "detail": "Main answer"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "Main arithmetic"
+        }
+      ],
+      "assumptions": [],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "name": "budget",
+    "request": {
+      "original_question": "I have $700 left each month after all expenses including $1000 rent. If I move to $1400 monthly rent, what will I have left?",
+      "assumptions": [
+        {
+          "variable": "monthly_surplus",
+          "value": 700,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 1400,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "replaced_recurring_cost",
+          "value": 1000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        }
+      ],
+      "extraction_meta": {
+        "model": "budget_cash_flow",
+        "target_variable": "projected_surplus",
+        "selection_state": {
+          "reference_date": "2026-11-17"
+        }
+      }
+    },
+    "response": {
+      "narrative": {
+        "text": "Your current budget leaves $700 each month. The additional $400 monthly cost would leave $300. That is your remaining monthly cushion after the new cost. Compare the two plans below before deciding.",
+        "suggestions": [
+          "What if the new recurring cost is $1,260 per month?",
+          "What if I have $800 left each month before the new cost?"
+        ]
+      },
+      "visuals": {
+        "kind": "recurring",
+        "budget_now": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 0.0,
+          "left_over": 700.0,
+          "basis": "surplus"
+        },
+        "budget_after": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 400.0,
+          "left_over": 300.0,
+          "basis": "surplus"
+        },
+        "options": [
+          {
+            "label": "Without the new cost",
+            "current": false,
+            "feasible": true,
+            "goal": 0,
+            "left_each_month": 700.0
+          },
+          {
+            "label": "With the new cost",
+            "current": true,
+            "feasible": true,
+            "goal": 400.0,
+            "left_each_month": 300.0,
+            "short": 0.0
+          }
+        ]
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "projected_surplus",
+        "main_value": 300,
+        "python_value": 300.0,
+        "unit": "$/month",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "budget_cash_flow",
+      "target_variable": "projected_surplus",
+      "factors": [
+        {
+          "variable": "projected_surplus",
+          "value": 300,
+          "unit": "$/month",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Projected surplus: $300.00 / month",
+        "detail": "Main answer"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "Main arithmetic"
+        }
+      ],
+      "assumptions": [],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "name": "budget_followup",
+    "request": {
+      "original_question": "I have $700 left each month after all expenses including $1000 rent. If I move to $1400 monthly rent, what will I have left?",
+      "assumptions": [
+        {
+          "variable": "monthly_surplus",
+          "value": 700,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 1260,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        },
+        {
+          "variable": "replaced_recurring_cost",
+          "value": 1000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "User supplied fact"
+        }
+      ],
+      "extraction_meta": {
+        "model": "budget_cash_flow",
+        "target_variable": "projected_surplus",
+        "selection_state": {
+          "reference_date": "2026-11-17"
+        }
+      }
+    },
+    "response": {
+      "narrative": {
+        "text": "Your current budget leaves $700 each month. The additional $260 monthly cost would leave $440. That is your remaining monthly cushion after the new cost. Compare the two plans below before deciding.",
+        "suggestions": [
+          "What if the new recurring cost is $1,134 per month?",
+          "What if I have $800 left each month before the new cost?"
+        ]
+      },
+      "visuals": {
+        "kind": "recurring",
+        "budget_now": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 0.0,
+          "left_over": 700.0,
+          "basis": "surplus"
+        },
+        "budget_after": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 260.0,
+          "left_over": 440.0,
+          "basis": "surplus"
+        },
+        "options": [
+          {
+            "label": "Without the new cost",
+            "current": false,
+            "feasible": true,
+            "goal": 0,
+            "left_each_month": 700.0
+          },
+          {
+            "label": "With the new cost",
+            "current": true,
+            "feasible": true,
+            "goal": 260.0,
+            "left_each_month": 440.0,
+            "short": 0.0
+          }
+        ]
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "projected_surplus",
+        "main_value": 440,
+        "python_value": 440.0,
+        "unit": "$/month",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "budget_cash_flow",
+      "target_variable": "projected_surplus",
+      "factors": [
+        {
+          "variable": "projected_surplus",
+          "value": 440,
+          "unit": "$/month",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Projected surplus: $440.00 / month",
+        "detail": "Main answer"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "Main arithmetic"
+        }
+      ],
+      "assumptions": [],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  }
+]

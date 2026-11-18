@@ -12,7 +12,7 @@ assert.equal(p('6', 'months'), 6);
 for (const [text, unit] of [
   ['not sure', '$'], ['maybe 500 or 600', '$'], ['500-600', '$'], ['$50 a week', '$/month'], ['24k a year', '$/month'],
   ['about 100 a month for 4 months', '$'], ['2 years', 'months'], ['1.5 months', 'months'], ['$3', 'months'],
-  ['income 2000 and expenses 1400', '$'], ['two thousand', '$'], ['hello', '$'], ['900', 'text'], ['900', null], ['', '$'],
+  ['income 2000 and expenses 1400', '$'], ['I earn 200 monthly', '$/month'], ['I have $500 saved', 'months'], ['I spend $100', '$'], ['two thousand', '$'], ['hello', '$'], ['900', 'text'], ['900', null], ['', '$'],
 ]) assert.equal(p(text, unit), null, `${text} / ${unit}`);
 
 const base = { assumptions: [{ variable: 'rent', value: null, unit: '$/month', source: 'missing', source_detail: 'x' }, { variable: 'other', value: 1, unit: '$', source: 'stated', source_detail: 'y' }],

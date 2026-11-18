@@ -1,0 +1,180 @@
+{
+  "assumptions": [
+    {
+      "variable": "goal_amount",
+      "value": 3000,
+      "unit": "$",
+      "source": "inferred",
+      "source_detail": "question: I think it may cost 3000 to go"
+    },
+    {
+      "variable": "monthly_income",
+      "value": 200,
+      "unit": "$/month",
+      "source": "stated",
+      "source_detail": "question: I'm earning 200 a month"
+    },
+    {
+      "variable": "goal_deadline",
+      "value": "spring break",
+      "unit": "text",
+      "source": "stated",
+      "source_detail": "question: spring break"
+    },
+    {
+      "variable": "affordability_status",
+      "value": null,
+      "unit": null,
+      "source": "missing",
+      "source_detail": "Requested target; not calculated during extraction."
+    },
+    {
+      "variable": "current_savings",
+      "value": null,
+      "unit": "$",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided."
+    },
+    {
+      "variable": "contribution_months",
+      "value": null,
+      "unit": "months",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided."
+    },
+    {
+      "variable": "monthly_expenses",
+      "value": null,
+      "unit": "$/month",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided."
+    }
+  ],
+  "clarification_questions": [
+    {
+      "target_variable": "current_savings",
+      "question": "How much of your savings can you put toward this goal? You can say $0 if none.",
+      "why_it_matters": "Needed to answer your selected financial question.",
+      "required": true
+    },
+    {
+      "target_variable": "contribution_months",
+      "question": "How many monthly deposits will you make before your stated deadline?",
+      "why_it_matters": "Needed to answer your selected financial question.",
+      "required": true
+    },
+    {
+      "target_variable": "monthly_expenses",
+      "question": "About how much do you spend each month on rent, food, and everything else?",
+      "why_it_matters": "Needed to answer your selected financial question.",
+      "required": true
+    }
+  ],
+  "goal_summary": "Check whether the trip fits.",
+  "confidence_note": "Cost is a user estimate; other personal facts remain unknown.",
+  "model": "savings_goal",
+  "target_variable": "affordability_status",
+  "supporting_targets": [],
+  "factors": [
+    {
+      "variable": "goal_amount",
+      "value": 3000,
+      "unit": "$",
+      "role": "known",
+      "source": "inferred",
+      "source_detail": "question: I think it may cost 3000 to go",
+      "relevant": true,
+      "evidence": {
+        "source": "question",
+        "quote": "I think it may cost 3000 to go",
+        "variable": null
+      },
+      "inference": null
+    },
+    {
+      "variable": "monthly_income",
+      "value": 200,
+      "unit": "$/month",
+      "role": "known",
+      "source": "stated",
+      "source_detail": "question: I'm earning 200 a month",
+      "relevant": true,
+      "evidence": {
+        "source": "question",
+        "quote": "I'm earning 200 a month",
+        "variable": null
+      },
+      "inference": null
+    },
+    {
+      "variable": "goal_deadline",
+      "value": "spring break",
+      "unit": "text",
+      "role": "known",
+      "source": "stated",
+      "source_detail": "question: spring break",
+      "relevant": true,
+      "evidence": {
+        "source": "question",
+        "quote": "spring break",
+        "variable": null
+      },
+      "inference": null
+    },
+    {
+      "variable": "affordability_status",
+      "value": null,
+      "unit": null,
+      "role": "missing",
+      "source": "missing",
+      "source_detail": "Requested target; not calculated during extraction.",
+      "relevant": true,
+      "evidence": null,
+      "inference": null
+    },
+    {
+      "variable": "current_savings",
+      "value": null,
+      "unit": "$",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided.",
+      "role": "missing",
+      "relevant": true
+    },
+    {
+      "variable": "contribution_months",
+      "value": null,
+      "unit": "months",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided.",
+      "role": "missing",
+      "relevant": true
+    },
+    {
+      "variable": "monthly_expenses",
+      "value": null,
+      "unit": "$/month",
+      "source": "missing",
+      "source_detail": "Required for the selected calculation; not provided.",
+      "role": "missing",
+      "relevant": true
+    }
+  ],
+  "routing": {
+    "model": "savings_goal"
+  },
+  "selection_state": {
+    "model": "savings_goal",
+    "revision": 0,
+    "history": [
+      {
+        "role": "user",
+        "content": "My friends want to do a spring break trip to Miami but I don't know if I can afford it; I think it may cost 3000 to go, but I'm earning 200 a month"
+      }
+    ],
+    "active_question": "My friends want to do a spring break trip to Miami but I don't know if I can afford it; I think it may cost 3000 to go, but I'm earning 200 a month",
+    "reference_date": "2026-11-18",
+    "timezone": "America/New_York"
+  },
+  "assistant_message": "I know what you earn, but not how much is available after your expenses. I also need the other items marked \u201cStill unknown\u201d before I can answer. Let\u2019s fill them in one at a time."
+}

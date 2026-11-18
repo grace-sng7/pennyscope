@@ -62,6 +62,9 @@ def _factor_schema(stage):
             'missing_inputs':{'type':'array','items':{'type':'object','properties':{'variable':{'type':'string'},'label':{'type':'string'},'unit':{'type':'string'}},'required':['variable','label']}},
             'gap_reason':{'anyOf':[{'type':'string'},{'type':'null'}]}})
         schema['required'] += ['inputs','bindings','results','headline','calculation','assumptions','missing_inputs']
+        schema['properties']['narrative']={'type':'object','properties':{
+            'text':{'type':'string'},'suggestions':{'type':'array','items':{'type':'string'}},
+            'primary_value':{}},'required':['text','suggestions','primary_value']}
         # Let Main work through its arithmetic before committing final values.
         schema['properties']={'calculation':schema['properties']['calculation'],
                               **{k:v for k,v in schema['properties'].items() if k!='calculation'}}

@@ -435,3 +435,166 @@ checking=220, bill=300 on the 4th, paycheck=150 on the 6th; moving payday to the
 checks and no follow-up. A covered equal bill split retained bill_split, $30
 per person and matched verification. Evidence is saved in
 `tests/regression_artifacts/question_approach_live.json`.
+
+### Grace presentation integration (reference 086b79b; base b7f1082)
+
+Talk It Through retains the four-model backend and target-specific input checks.
+`AnswerCard` remains a concise Main headline and the existing verification icon.
+`AnswerSupporting` renders optional material below that answer, in a separate
+section: Grace-style narrative, visuals, expandable math, and suggested questions.
+The existing `send` correction/calculation flow handles suggestion clicks.
+
+Carried over/adapted from Grace's `components/answer-visuals.tsx` and chart CSS:
+StackedBar and its hover tooltip, exact-amount Legend, Figure, BudgetFigure,
+funding-source breakdown, the monthly Timeline with hover and goal marker, and
+OptionsTable as OptionsList. Timeline's table toggle is now an expandable list.
+Reference-date labels include the year and do not use the browser's current month.
+The narrative/explanation layout, math disclosure and what-if replies are preserved.
+No tables are rendered in the integrated supporting content.
+
+`answer_presentation.attach` builds optional presentation from the selected input
+plan and the existing matched target check. Main remains the primary solver.
+Presentation has no routing, required-input or model-registration authority.
+For surplus-only budgets, the chart is explicitly labeled as money available
+AFTER current expenses; it does not fabricate income or an expense breakdown.
+Missing chart inputs omit that section instead of generating questions. Reverse
+savings can show funding and timeline without a monthly budget chart.
+
+Chart narratives are assembled from the exact current-plan fields. This avoids
+mislabeling the remainder as the cost increase or describing an alternative plan
+as the selected plan. On checked results without charts, Main's optional narrative
+is accepted only with matching target metadata and grounded monetary figures;
+otherwise a grounded explanation is used. No separate narration provider call is
+needed. Alternative plans are clearly hypothetical and check monthly capacity
+when supplied; otherwise the UI distinguishes goal arithmetic from affordability.
+Shortfall scenarios include delay/lower-goal alternatives where supported.
+
+Mismatched/unavailable verification preserves Main's answer and its `!` while
+omitting potentially conflicting plots. Cash timing retains the scoped answer and
+worksheet. The worksheet combines current extraction facts with calculation
+factors, so a short Main factor list cannot erase known user facts.
+
+Optional display data is parsed independently in `lib/answer-presentation.ts`.
+Bad chart sections cannot invalidate the answer. Separate React error boundaries
+protect the core answer, supporting content, and visuals. Tests force errors in
+both the presentation builder and the actual visual component; Main's answer
+remains visible, and an optional chart exception preserves narrative and replies.
+
+A live rent check exposed a pre-existing citation issue: the extractor cited only
+the NEW charge for an OLD rent amount. The extraction prompt now explicitly asks
+for evidence containing the old amount. Evidence validation and the bounded repair
+path remain unchanged; unsupported amounts are still rejected.
+
+Validation:
+- 146 backend tests, 25 root financial/agent tests and 6 extraction HTTP tests pass.
+- All frontend suites, ESLint, TypeScript and diff whitespace checks pass.
+- React-rendered regressions cover all chart types, legends, month labels, hover,
+  monthly-details/math expansion, no tables, and real ChatApp suggestion handlers
+  for both savings and budget corrections. Invalid optional payloads are omitted.
+- Native Safari comparison used Grace's pinned frontend with a deterministic
+  savings fixture, then the integrated frontend with the live backend/provider.
+  Funding (2800 income + 200 savings), budget, timeline, narrative, and list-based
+  alternatives were visually inspected. The savings nine-month suggestion updated
+  the plan and worksheet in the browser; disclosures also worked.
+- Live API checks returned savings visuals/narrative/replies, surplus-only rent
+  300/month without a deadline question, reverse savings 200/month, bill shares
+  30 without income questions, and cash timing 80 with unavailable verification.
+  Recorded in `tests/regression_artifacts/grace_presentation_live.json`.
+- Existing matched/mismatch/unavailable tests still prove Main 1100/no icon,
+  Main 1200 versus Python 1100/one icon, and unavailable verification/one icon.
+
+Intentionally not imported: saved profile, automatic price estimates and their
+CostBreakdown UI, Grace's calculator-wins verification banner/comparison table,
+and her standalone savings calculator/default allocation policy. Model-specific
+presentation is currently savings/budget; bill/debt retain narrative/what-ifs and
+worksheet math, and scoped cash timing uses its worksheet. Timeline plots are
+bounded to 60 deposits; other available support still renders for longer horizons.
+Grace's production provider/deployment was not exercised or modified.
+
+The final native-browser budget suggestion changed the full new rent from 1400 to
+1260/month, preserving the old rent of 1000 and stated surplus of 700. The result
+updated from 300 to 440/month; narrative, cost segment (260), remaining-cash segment
+(440), comparison list and worksheet all updated without an income/deadline question.
+
+### Clarification-first correction (2026-11-18)
+
+Grace's original skip handler also converts uncertainty into an estimation request.
+That interaction is deliberately not carried over: skipping a required personal
+fact leaves it unknown. The chat asks the next required question and pauses when
+all remaining questions have been skipped, rather than inventing savings or
+issuing an affordability verdict. Both quick and detailed modes respect this.
+
+The selected registry target now supplies required-only unknowns in `/extract`
+and `/correct`, before Main runs. Calendar language stays visible, but an unclear
+number of deposits is asked explicitly. Existing supported input alternatives
+remain valid: a contribution or surplus avoids unnecessary income/expense
+questions; when income is already supplied, spending is the relevant next capacity
+fact. Model coverage gaps remain separate from required personal facts.
+
+Evidence validation and extraction instructions distinguish earnings from savings
+contributions. A statement naming a financial role is handled as a correction,
+not inserted into an unrelated pending field by the numeric reply shortcut.
+Structured extraction recovery retains confirmed facts and asks required questions
+before attempting plain-language recovery. Valid existing Main answers and the
+advisory Python policy remain unchanged.
+
+Validation: 152 backend tests and 25 root tests pass; npm test (including actual
+ChatApp skip interactions in both modes), ESLint and TypeScript checks pass.
+Six new mocked backend regressions cover earnings evidence, initial unknowns,
+progressive answers, explicit contribution alternatives and failure recovery.
+No provider is called by these regression tests. Live reproduction of the user's
+financial prompt was blocked by automatic approval review because it would send
+that financial data to the configured external provider; live extraction quality
+for this new prompt is therefore not claimed as verified.
+
+### Hosted screenshot: purchase today (2026-11-18)
+
+The supplied PDF shows a $750 balance, $900 laptop and purchase today. The public
+pennyscope.vercel.app bundles inspected read-only still contain Grace's fixed
+five-input REQUIRED set, saved-profile UI and automatic estimation path. Its
+bundled calculator rejects months <= 0 ("Deadline must be a positive whole number
+of months."). These are not the currently integrated local chat/backend rules.
+The screenshot's repeated requests for a deadline after replies of 0 are consistent
+with this validation. The later generic error has no stack trace in the screenshot,
+so its exact server exception cannot be established from this artifact.
+
+Added offline regression coverage through /extract, /calculate and the actual
+ChatApp answer card: savings 750, price 900, horizon 0 require no income/expenses or
+additional deadline. Main receives the complete selection; Python agrees. No
+external provider was called. All 153 backend tests pass, and the new frontend
+interaction check passes. No production source or public deployment was changed
+for this diagnosis; the public app still needs the integrated version deployed.
+
+### Shared answer / schedule / worksheet presentation fixes (2026-11-18)
+
+The integrated screenshots exposed presentation defects separate from the earlier
+hosted Grace build: Main's yes/no explanation was relegated to an undisplayed
+answer.detail, scoped weekly calculations bypassed presentation assembly, frontend
+visual parsing required a matching Python check even for scoped timelines, and
+nested worksheet list items inherited the top-level three-column grid.
+
+Affordability now preserves Main's concise verdict sentence when its yes/no agrees
+with the selected Main target. Missing narrative falls back to a readable verdict.
+Today uses the existing zero-deposit funding chart and a today-specific explanation
+and suggested questions, without pretending there is a monthly saving plan.
+Scoped complete deposit schedules can show a narrative, suggestions and a list of
+balances by deposit. The endpoint must agree with Main before the timeline renders;
+Python remains unavailable/advisory and retains !. No model registration or new
+Python verifier was introduced, and conflicting timelines are omitted.
+
+One shared frontend fact formatter replaces raw entry labels/counts with amount,
+frequency, number of deposits and shared ownership where available. Today replaces
+0 months in the summary and worksheet. The worksheet uses plain readable summaries
+and bounded columns; its grid selector now affects only top-level rows. Structured
+facts remain unchanged in backend/state. All comparisons remain lists, not tables.
+
+157 backend tests, npm test, ESLint and TypeScript checks pass. Coverage includes
+today, weekly deposits, reverse and monthly savings, budget/rent, itemized bills,
+debt, cash timing, optional failure and Main/Python disagreement. Added presentation
+checks for weekly endpoints, mismatches/incomplete schedules, amount/frequency/count,
+Today and funding charts. Native Safari visually checked server-rendered versions
+of the actual components/styles using offline backend fixtures at a 300px worksheet
+width; no external LLM requests were made. Updated local backend remains on 8000,
+frontend on 3000. Existing rendered messages retain their old response payload;
+start a new chat to request newly generated supporting content. Public deployment
+was not changed.

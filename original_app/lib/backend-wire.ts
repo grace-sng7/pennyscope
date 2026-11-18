@@ -1,3 +1,4 @@
+import { readNarrative, readVisuals } from './answer-presentation';
 import { validateModelContext, type ModelContext } from './model-factors';
 // Wire format between this frontend and the Python backend (see BACKEND_CONTRACT.md).
 // The Python side only ever sees these simple shapes. All UI-specific structure
@@ -99,12 +100,21 @@ function buildAnswer(headline: string, detail: string | undefined, parameters: E
   return { headline: plain + rest, segments, ...(detail ? { detail } : {}) };
 }
 
+// A scoped deposit timeline can accompany an unavailable independent check,
+// provided its last balance agrees with Main. Keep mismatching plots hidden.
+function presentationVisuals(w: Record<string, unknown>) {
+ const visuals=readVisuals(w.visuals),verification=w.verification && typeof w.verification==='object' ? w.verification as Record<string, unknown> : undefined;
+ if(verification?.status==='matched')return visuals;
+ if(verification?.status==='unverified'&&visuals?.kind==='deposits'&&typeof verification.main_value==='number'&&Math.abs(visuals.timeline.at(-1)!.balance-verification.main_value)<.005)return visuals;
+ return undefined;
+}
+
 export function fromCalculateWire(raw: unknown, request: CalculationRequest): CalculationResponse {
   const w = rec(raw, 'response');
   const status = w.status;
   if (status !== 'ready' && status !== 'conditional' && status !== 'needs_input' && status !== 'unsupported') return fail(`status must be ready, conditional, needs_input or unsupported (got ${String(status)})`);
   const { extraction, edits, answers } = request;
-  const base = { ...emptyContent(), ...validateModelContext(w) };
+  const base = { ...emptyContent(), ...validateModelContext(w), narrative: readNarrative(w.narrative), visuals: presentationVisuals(w) };
 
   if (w.verification != null) {
     const verification = rec(w.verification, 'verification');

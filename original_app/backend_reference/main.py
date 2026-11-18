@@ -27,7 +27,7 @@ def extract(req: ExtractRequest):
         return ExtractionResponse.model_validate(result).model_dump(exclude_unset=True)
     except Exception as exc:
         facts=getattr(exc,'confirmed_factors',[])
-        return chat_fallback.extraction_response(req.user_message,facts)
+        return chat_fallback.extraction_response(req.user_message,facts,model=getattr(exc,'selected_model',None),target_variable=getattr(exc,'target_variable',None))
 
 
 @app.post("/correct", response_model=ExtractionResponse)
@@ -37,7 +37,9 @@ def correct(req: CorrectRequest):
         return ExtractionResponse.model_validate(result).model_dump(exclude_unset=True)
     except Exception as exc:
         facts=[a.model_dump() for a in req.previous_extraction.assumptions]+getattr(exc,'confirmed_factors',[])
-        return chat_fallback.extraction_response(req.user_message,facts,correction=req.user_correction)
+        return chat_fallback.extraction_response(req.user_message,facts,correction=req.user_correction,
+            model=getattr(exc,'selected_model',None) or req.previous_extraction.model_extra.get('model'),
+            target_variable=getattr(exc,'target_variable',None) or req.previous_extraction.model_extra.get('target_variable'))
 
 
 @app.post("/calculate", response_model=CalculateResponse)
@@ -57,6 +59,14 @@ def calculate(req: CalculateRequest):
                 result=question_approach.calculate(req.model_dump())
         return CalculateResponse.model_validate(result).model_dump(exclude_unset=True)
     except Exception:
+        # Provider/presentation failures cannot bypass known missing-input
+        # checks and turn an incomplete question into a plain-language verdict.
+        try:
+            import calculation_handoff
+            facts={a.variable:a.model_dump() for a in req.assumptions}
+            _,clarification=(None,None) if chat_fallback.from_main(locals().get('result')) else calculation_handoff.resolve(req.model_dump(),facts)
+            if clarification and clarification.get('status')=='needs_input':return clarification
+        except (ValueError,TypeError,KeyError):pass
         reply=chat_fallback.respond(req.original_question,[a.model_dump() for a in req.assumptions],existing_main=locals().get('result'))
         return {'status':'conditional' if reply['kind']=='answer' else 'needs_input','answer':{'headline':reply['text']} if reply['kind']=='answer' else None,'message':reply['text'] if reply['kind']!='answer' else None,'chat_fallback':reply}
 

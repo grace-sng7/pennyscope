@@ -1,0 +1,1214 @@
+[
+  {
+    "case": "savings",
+    "prompt": "I earn $2000 after tax monthly, spend $1650 monthly and have $1200 available for a $3000 goal in eight months. Can I afford it?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "monthly_income",
+          "value": 2000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: I earn $2000 after tax monthly"
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": 1650,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: spend $1650 monthly"
+        },
+        {
+          "variable": "available_savings",
+          "value": 1200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: have $1200 available for a $3000 goal"
+        },
+        {
+          "variable": "goal_amount",
+          "value": 3000,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: a $3000 goal"
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 8,
+          "unit": "months",
+          "source": "stated",
+          "source_detail": "question: in eight months"
+        },
+        {
+          "variable": "affordability_status",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine if the user can afford a $3000 goal in 8 months with $1200 available and a monthly surplus of $350.",
+      "confidence_note": "The user's monthly surplus and available savings will be used to calculate their ability to afford the goal.",
+      "model": "savings_goal",
+      "target_variable": "affordability_status",
+      "supporting_targets": [
+        "months_to_goal",
+        "required_monthly_savings",
+        "projected_savings"
+      ],
+      "factors": [
+        {
+          "variable": "monthly_income",
+          "value": 2000,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I earn $2000 after tax monthly",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I earn $2000 after tax monthly",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": 1650,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: spend $1650 monthly",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "spend $1650 monthly",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "available_savings",
+          "value": 1200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: have $1200 available for a $3000 goal",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "have $1200 available for a $3000 goal",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "goal_amount",
+          "value": 3000,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $3000 goal",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "a $3000 goal",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 8,
+          "unit": "months",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: in eight months",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "in eight months",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "affordability_status",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "savings_goal"
+      },
+      "selection_state": {
+        "model": "savings_goal",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I earn $2000 after tax monthly, spend $1650 monthly and have $1200 available for a $3000 goal in eight months. Can I afford it?"
+          }
+        ],
+        "active_question": "I earn $2000 after tax monthly, spend $1650 monthly and have $1200 available for a $3000 goal in eight months. Can I afford it?",
+        "reference_date": "2026-11-18",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "narrative": {
+        "text": "You are starting with $1,200 available for this plan. Setting aside $350 each month for 8 months adds $2,800. The plan uses $200 from your existing savings, leaving $1,000 of those savings untouched. Compare the options below or try changing one value.",
+        "suggestions": [
+          "What if I have 9 months instead?",
+          "What if I save $280 each month?"
+        ]
+      },
+      "visuals": {
+        "kind": "one_time",
+        "options": [
+          {
+            "label": "Current plan",
+            "current": true,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 350.0,
+            "from_savings": 200.0,
+            "savings_left": 1000.0,
+            "short": 0.0
+          },
+          {
+            "label": "Lower monthly saving, using available savings",
+            "current": false,
+            "feasible": true,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 225.0,
+            "from_savings": 1200.0,
+            "savings_left": 0.0,
+            "short": 0.0
+          },
+          {
+            "label": "Keep existing savings untouched",
+            "current": false,
+            "feasible": false,
+            "goal": 3000.0,
+            "months": 8,
+            "budget_checked": true,
+            "monthly": 375.0,
+            "from_savings": 0.0,
+            "savings_left": 1200.0,
+            "short": 200.0
+          }
+        ],
+        "base_date": "2026-11-18",
+        "funding": {
+          "goal": 3000.0,
+          "from_income": 2800.0,
+          "from_savings": 200.0,
+          "short": 0.0
+        },
+        "timeline": [
+          {
+            "month": 1,
+            "set_aside": 350.0
+          },
+          {
+            "month": 2,
+            "set_aside": 700.0
+          },
+          {
+            "month": 3,
+            "set_aside": 1050.0
+          },
+          {
+            "month": 4,
+            "set_aside": 1400.0
+          },
+          {
+            "month": 5,
+            "set_aside": 1750.0
+          },
+          {
+            "month": 6,
+            "set_aside": 2100.0
+          },
+          {
+            "month": 7,
+            "set_aside": 2450.0
+          },
+          {
+            "month": 8,
+            "set_aside": 2800.0
+          }
+        ],
+        "budget": {
+          "income": 2000.0,
+          "expenses": [
+            {
+              "label": "Expenses",
+              "amount": 1650.0
+            }
+          ],
+          "goal": 350.0,
+          "left_over": 0.0,
+          "basis": "income"
+        }
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "affordability_status",
+        "main_value": "Yes",
+        "python_value": true,
+        "unit": "text",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "savings_goal",
+      "target_variable": "affordability_status",
+      "factors": [
+        {
+          "variable": "monthly_income",
+          "value": 2000,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I earn $2000 after tax monthly",
+          "relevant": true
+        },
+        {
+          "variable": "monthly_expenses",
+          "value": 1650,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: spend $1650 monthly",
+          "relevant": true
+        },
+        {
+          "variable": "available_savings",
+          "value": 1200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: have $1200 available for a $3000 goal",
+          "relevant": true
+        },
+        {
+          "variable": "goal_amount",
+          "value": 3000,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $3000 goal",
+          "relevant": true
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 8,
+          "unit": "months",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: in eight months",
+          "relevant": true
+        },
+        {
+          "variable": "affordability_status",
+          "value": "Yes",
+          "unit": "text",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Affordability status: Yes",
+        "detail": "You can afford the $3000 goal in 8 months"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "(3000 - 1200) / 8 = 2250 / 8 = 225, monthly surplus = 2000 - 1650 = 350, 350 > 225, so affordability_status = 'Yes'"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "monthly surplus is used for savings",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "case": "budget",
+    "prompt": "I have $700 left each month after all expenses including $1000 rent. If I move to $1400 monthly rent, what will I have left?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "monthly_surplus",
+          "value": 700,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: I have $700 left each month after all expenses"
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 1400,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: move to $1400 monthly rent"
+        },
+        {
+          "variable": "replaced_recurring_cost",
+          "value": 1000,
+          "unit": "$/month",
+          "source": "stated",
+          "source_detail": "question: all expenses including $1000 rent"
+        },
+        {
+          "variable": "projected_surplus",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "User wants to know the projected surplus after moving to a new monthly rent of $1400.",
+      "confidence_note": "The user has provided information about their current monthly surplus and the new monthly rent, but the calculation of the projected surplus depends on the accuracy of this information.",
+      "model": "budget_cash_flow",
+      "target_variable": "projected_surplus",
+      "supporting_targets": [
+        "affordability_status"
+      ],
+      "factors": [
+        {
+          "variable": "monthly_surplus",
+          "value": 700,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $700 left each month after all expenses",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $700 left each month after all expenses",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 1400,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: move to $1400 monthly rent",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "move to $1400 monthly rent",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "replaced_recurring_cost",
+          "value": 1000,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: all expenses including $1000 rent",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "all expenses including $1000 rent",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "projected_surplus",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "budget_cash_flow"
+      },
+      "selection_state": {
+        "model": "budget_cash_flow",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $700 left each month after all expenses including $1000 rent. If I move to $1400 monthly rent, what will I have left?"
+          }
+        ],
+        "active_question": "I have $700 left each month after all expenses including $1000 rent. If I move to $1400 monthly rent, what will I have left?",
+        "reference_date": "2026-11-18",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "narrative": {
+        "text": "Your current budget leaves $700 each month. The additional $400 monthly cost would leave $300. That is your remaining monthly cushion after the new cost. Compare the two plans below before deciding.",
+        "suggestions": [
+          "What if the new recurring cost is $1,260 per month?",
+          "What if I have $800 left each month before the new cost?"
+        ]
+      },
+      "visuals": {
+        "kind": "recurring",
+        "budget_now": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 0.0,
+          "left_over": 700.0,
+          "basis": "surplus"
+        },
+        "budget_after": {
+          "income": 700.0,
+          "expenses": [],
+          "goal": 400.0,
+          "left_over": 300.0,
+          "basis": "surplus"
+        },
+        "options": [
+          {
+            "label": "Without the new cost",
+            "current": false,
+            "feasible": true,
+            "goal": 0,
+            "left_each_month": 700.0
+          },
+          {
+            "label": "With the new cost",
+            "current": true,
+            "feasible": true,
+            "goal": 400.0,
+            "left_each_month": 300.0,
+            "short": 0.0
+          }
+        ]
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "projected_surplus",
+        "main_value": 300,
+        "python_value": 300.0,
+        "unit": "$/month",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "budget_cash_flow",
+      "target_variable": "projected_surplus",
+      "factors": [
+        {
+          "variable": "monthly_surplus",
+          "value": 700,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $700 left each month after all expenses",
+          "relevant": true
+        },
+        {
+          "variable": "recurring_cost",
+          "value": 1400,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: move to $1400 monthly rent",
+          "relevant": true
+        },
+        {
+          "variable": "replaced_recurring_cost",
+          "value": 1000,
+          "unit": "$/month",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: all expenses including $1000 rent",
+          "relevant": true
+        },
+        {
+          "variable": "projected_surplus",
+          "value": 300,
+          "unit": "$/month",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Projected surplus: $300.00 / month",
+        "detail": "Projecting Monthly Surplus After Rent Increase"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "700 - (1400 - 1000) = 700 - 400 = 300"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "Current monthly surplus is $700",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "New monthly rent is $1400",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "Old monthly rent is $1000",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "case": "reverse_savings",
+    "prompt": "I have $200 available for a $1200 goal in five months. How much must I save monthly?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "current_savings",
+          "value": 200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months."
+        },
+        {
+          "variable": "goal_amount",
+          "value": 1200,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months."
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 5,
+          "unit": "months",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months."
+        },
+        {
+          "variable": "required_monthly_savings",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Save $1200 in 5 months with $200 initial savings",
+      "confidence_note": "User provided initial savings, goal amount, and deadline",
+      "model": "savings_goal",
+      "target_variable": "required_monthly_savings",
+      "supporting_targets": [
+        "months_to_goal",
+        "projected_savings"
+      ],
+      "factors": [
+        {
+          "variable": "current_savings",
+          "value": 200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $200 available for a $1200 goal in five months.",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "goal_amount",
+          "value": 1200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $200 available for a $1200 goal in five months.",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 5,
+          "unit": "months",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "I have $200 available for a $1200 goal in five months.",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "required_monthly_savings",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "savings_goal"
+      },
+      "selection_state": {
+        "model": "savings_goal",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $200 available for a $1200 goal in five months. How much must I save monthly?"
+          }
+        ],
+        "active_question": "I have $200 available for a $1200 goal in five months. How much must I save monthly?",
+        "reference_date": "2026-11-18",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "narrative": {
+        "text": "You are starting with $200 available for this plan. Setting aside $200 each month for 5 months adds $1,000. The plan uses $200 from your existing savings, leaving $0 of those savings untouched. Compare the options below or try changing one value.",
+        "suggestions": [
+          "What if I have 6 months instead?",
+          "What if I save $160 each month?"
+        ]
+      },
+      "visuals": {
+        "kind": "one_time",
+        "options": [
+          {
+            "label": "Current plan",
+            "current": true,
+            "feasible": true,
+            "goal": 1200.0,
+            "months": 5,
+            "budget_checked": false,
+            "monthly": 200.0,
+            "from_savings": 200.0,
+            "savings_left": 0.0,
+            "short": 0.0
+          },
+          {
+            "label": "Keep existing savings untouched",
+            "current": false,
+            "feasible": true,
+            "goal": 1200.0,
+            "months": 5,
+            "budget_checked": false,
+            "monthly": 240.0,
+            "from_savings": 0.0,
+            "savings_left": 200.0,
+            "short": 0.0
+          }
+        ],
+        "base_date": "2026-11-18",
+        "funding": {
+          "goal": 1200.0,
+          "from_income": 1000.0,
+          "from_savings": 200.0,
+          "short": 0.0
+        },
+        "timeline": [
+          {
+            "month": 1,
+            "set_aside": 200.0
+          },
+          {
+            "month": 2,
+            "set_aside": 400.0
+          },
+          {
+            "month": 3,
+            "set_aside": 600.0
+          },
+          {
+            "month": 4,
+            "set_aside": 800.0
+          },
+          {
+            "month": 5,
+            "set_aside": 1000.0
+          }
+        ]
+      },
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "required_monthly_savings",
+        "main_value": 200,
+        "python_value": 200.0,
+        "unit": "$/month",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "savings_goal",
+      "target_variable": "required_monthly_savings",
+      "factors": [
+        {
+          "variable": "current_savings",
+          "value": 200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true
+        },
+        {
+          "variable": "goal_amount",
+          "value": 1200,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true
+        },
+        {
+          "variable": "goal_deadline",
+          "value": 5,
+          "unit": "months",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: I have $200 available for a $1200 goal in five months.",
+          "relevant": true
+        },
+        {
+          "variable": "required_monthly_savings",
+          "value": 200,
+          "unit": "$/month",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Required monthly savings: $200.00 / month",
+        "detail": "Monthly Savings Needed"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "(1200-200)/5=200"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "User has $200 available for the goal",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "Goal amount is $1200",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "Goal deadline is 5 months",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "case": "bill_split",
+    "prompt": "Nina, Leo, and I split a $90 bill equally. How much does each person owe?",
+    "extraction": {
+      "assumptions": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "source": "stated",
+          "source_detail": "question: a $90 bill"
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I"
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each person owe?"
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction."
+        }
+      ],
+      "clarification_questions": [],
+      "goal_summary": "Determine the amount each person owes for a $90 bill split equally among three people.",
+      "confidence_note": "High confidence in the target variable and factors due to explicit user statement.",
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "supporting_targets": [],
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $90 bill",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "a $90 bill",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each person owe?",
+          "relevant": true,
+          "evidence": {
+            "source": "question",
+            "quote": "Nina, Leo, and I split a $90 bill equally. How much does each person owe?",
+            "variable": null
+          },
+          "inference": null
+        },
+        {
+          "variable": "amounts_owed",
+          "value": null,
+          "unit": null,
+          "role": "missing",
+          "source": "missing",
+          "source_detail": "Requested target; not calculated during extraction.",
+          "relevant": true,
+          "evidence": null,
+          "inference": null
+        }
+      ],
+      "routing": {
+        "model": "bill_split"
+      },
+      "selection_state": {
+        "model": "bill_split",
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "Nina, Leo, and I split a $90 bill equally. How much does each person owe?"
+          }
+        ],
+        "active_question": "Nina, Leo, and I split a $90 bill equally. How much does each person owe?",
+        "reference_date": "2026-11-18",
+        "timezone": "America/New_York"
+      }
+    },
+    "result": {
+      "narrative": {
+        "text": "To find out how much each person owes for the $90 bill, we split the total amount equally among the three people. Each person's share is $90 / 3 = $30. You, Nina, and Leo each owe $30. Consider discussing with your friends how to transfer the money or pay the bill directly.",
+        "suggestions": [
+          "What if the bill was $120 instead?",
+          "How would the split change if there were four people?",
+          "What if I wanted to add a 10% tip to the bill?"
+        ]
+      },
+      "visuals": null,
+      "chat_fallback": null,
+      "verification": {
+        "status": "matched",
+        "context": "answer",
+        "target_variable": "amounts_owed",
+        "main_value": 30,
+        "python_value": {
+          "Nina": "30.00",
+          "Leo": "30.00",
+          "me": "30.00"
+        },
+        "unit": "$",
+        "message": "The requested final result matches the independent check."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [],
+      "model": "bill_split",
+      "target_variable": "amounts_owed",
+      "factors": [
+        {
+          "variable": "total_bill",
+          "value": 90,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: a $90 bill",
+          "relevant": true
+        },
+        {
+          "variable": "participants",
+          "value": "[\"Nina\", \"Leo\", \"me\"]",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I",
+          "relevant": true
+        },
+        {
+          "variable": "split_method",
+          "value": "equal",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "question: Nina, Leo, and I split a $90 bill equally. How much does each person owe?",
+          "relevant": true
+        },
+        {
+          "variable": "amounts_owed",
+          "value": 30,
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated by Main.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "Amounts owed: $30.00",
+        "detail": "Equal Split of $90 Bill"
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Main calculation",
+          "text": "90 / 3 = 30"
+        }
+      ],
+      "assumptions": [
+        {
+          "id": null,
+          "text": "The bill is split equally among three people.",
+          "parameter_key": null,
+          "review_label": null
+        },
+        {
+          "id": null,
+          "text": "The total bill amount is $90.",
+          "parameter_key": null,
+          "review_label": null
+        }
+      ],
+      "limitations": [
+        "The answer is calculated by Main; independent verification is advisory."
+      ]
+    }
+  },
+  {
+    "case": "cash_timing",
+    "prompt": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?",
+    "extraction": {
+      "assumptions": [],
+      "clarification_questions": [],
+      "goal_summary": "I\u2019ll work through this question using the information you provided.",
+      "confidence_note": "No model-specific factor extraction has run.",
+      "model": null,
+      "target_variable": null,
+      "factors": [],
+      "routing": {
+        "model": "gap"
+      },
+      "selection_state": {
+        "model": null,
+        "revision": 0,
+        "history": [
+          {
+            "role": "user",
+            "content": "I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th. How much extra cash do I need before the bill is due?"
+          }
+        ]
+      }
+    },
+    "result": {
+      "narrative": null,
+      "visuals": null,
+      "chat_fallback": null,
+      "verification": {
+        "status": "unverified",
+        "context": "answer",
+        "target_variable": "extra_cash_needed",
+        "main_value": 80,
+        "python_value": null,
+        "unit": "$",
+        "message": "The independent check could not verify this answer. Main\u2019s answer is shown."
+      },
+      "inferred_information": [],
+      "coverage_gaps": [
+        {
+          "reason": "A question-scoped Main approach is used; no registered Python verifier covers it."
+        }
+      ],
+      "model": null,
+      "target_variable": "extra_cash_needed",
+      "factors": [
+        {
+          "variable": "bill_amount",
+          "value": 300,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated they have a $300 bill due on the 4th Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        },
+        {
+          "variable": "cash_available_before_bill",
+          "value": 220,
+          "unit": "$",
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated they have $220 in checking Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        },
+        {
+          "variable": "extra_cash_needed",
+          "value": 80,
+          "unit": "$",
+          "role": "derived",
+          "source": "inferred",
+          "source_detail": "Calculated as the difference between the bill amount and the cash available before the bill is due",
+          "relevant": true
+        },
+        {
+          "variable": "bill_due_date",
+          "value": "the 4th",
+          "unit": null,
+          "role": "known",
+          "source": "stated",
+          "source_detail": "The user stated the bill is due on the 4th Evidence: I have $220 in checking, a $300 bill due on the 4th, and a $150 paycheck on the 6th.",
+          "relevant": true
+        }
+      ],
+      "status": "conditional",
+      "message": null,
+      "answer": {
+        "headline": "You need $80 before the bill is due.",
+        "detail": null
+      },
+      "missing_inputs": [],
+      "parameters": [],
+      "metrics": [],
+      "explanations": [
+        {
+          "label": "Current question approach",
+          "text": "Calculate the difference between the bill amount and the cash available before the bill is due"
+        },
+        {
+          "label": "Main calculation",
+          "text": "Extra cash needed = max(0, bill amount - cash available before the bill) = max(0, $300 - $220) = $80"
+        }
+      ],
+      "assumptions": [],
+      "limitations": []
+    }
+  }
+]

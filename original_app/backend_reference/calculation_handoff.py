@@ -17,6 +17,74 @@ def question(variable, label):
             'missing_inputs':[{'variable':variable, 'label':label, 'input_type':'text' if text_input else 'number'}]}
 
 
+def choose_input_option(group,values):
+    # Prefer completing an already-supplied representation, e.g. income plus
+    # spending, over asking for a new contribution when income is already known.
+    return min(group,key=lambda names:(sum(values.get(n) is None for n in names),-sum(values.get(n) is not None for n in names)))
+
+
+def input_question(name,calendar=False):
+    return {
+        'current_savings':'How much of your savings can you put toward this goal? You can say $0 if none.',
+        'available_savings':'How much of your savings can you put toward this goal? You can say $0 if none.',
+        'monthly_expenses':'About how much do you spend each month on rent, food, and everything else?',
+        'monthly_income':'Roughly how much money comes in each month?',
+        'monthly_contribution':'How much can you set aside each month after your expenses?',
+        'monthly_surplus':'How much do you have left each month after all current expenses?',
+        'goal_amount':'About how much will this goal cost?',
+        'goal_deadline':'How many monthly deposits will you make before you need the money?',
+        'contribution_months':'How many monthly deposits will you make before your stated deadline?',
+    }.get(name,'What is your '+name.replace('_',' ')+'?')
+
+
+def add_required_context(response,original_question):
+    """Expose the selected target's unknown inputs before any final answer.
+
+    This is the same registry/alternative selection used by resolve, not Grace's
+    old universal savings checklist. Questions remain one per conversational turn.
+    """
+    model=response.get('model');target=response.get('target_variable')
+    if not model or response.get('routing',{}).get('model') in ('gap','ambiguous','multiple'):return response
+    registry=get_registry(model)
+    if target not in registry.targets:return response
+    factors={f['variable']:dict(f) for f in response.get('factors',[])}
+    values={registry.aliases.get(a['variable'],a['variable']):decode(a['value']) for a in response.get('assumptions',[])
+            if a['variable'] in registry.factors and a['variable']!=target and a.get('value') is not None and factors.get(a['variable'],{}).get('relevant',True)}
+    if model=='savings_goal' and values.get('contribution_entries'):
+        entries=values['contribution_entries']
+        if len(entries)!=1 or any(e.get('frequency')!='monthly' for e in entries):return response
+    if 'spending_entries' in values:
+        import base_input_rules
+        fact=next((a for a in response['assumptions'] if a['variable']=='spending_entries'),{})
+        if not base_input_rules.complete_spending_evidence(original_question) and not base_input_rules.complete_spending_evidence(fact.get('source_detail','')):values.pop('spending_entries')
+    calendar=False
+    if model=='savings_goal' and values.get('goal_deadline') is not None:
+        deadline=next((a for a in response['assumptions'] if registry.aliases.get(a['variable'],a['variable'])=='goal_deadline' and a.get('value') is not None),{})
+        if isinstance(values['goal_deadline'],bool) or not isinstance(values['goal_deadline'],(int,float)) or deadline.get('unit') not in (None,'months'):
+            values.pop('goal_deadline');calendar=True
+    unknown=[]
+    for group in registry.required_inputs(target,values):
+        if any(all(values.get(n) is not None for n in option) for option in group):continue
+        option=choose_input_option(group,values)
+        if calendar and group == (('goal_deadline',),('contribution_months',)):option=('contribution_months',)
+        unknown.extend(n for n in option if values.get(n) is None and n not in unknown)
+    assumptions={a['variable']:dict(a) for a in response.get('assumptions',[])}
+    for name,fact in factors.items():
+        if fact.get('role')=='missing' and name!=target:fact['relevant']=name in unknown
+    for name in unknown:
+        unit='$/month' if name.startswith('monthly_') else 'months' if name in ('goal_deadline','contribution_months','payoff_months') else '$'
+        fact=dict(variable=name,value=None,unit=unit,source='missing',source_detail='Required for the selected calculation; not provided.')
+        assumptions[name]=fact;factors[name]={**fact,'role':'missing','relevant':True}
+    result=copy.deepcopy(response)
+    result.update(assumptions=list(assumptions.values()),factors=list(factors.values()),
+        clarification_questions=[{'target_variable':n,'question':input_question(n,calendar),'why_it_matters':'Needed to answer your selected financial question.','required':True} for n in unknown])
+    if unknown:
+        result['assistant_message']='The items marked “Still unknown” are needed for this calculation. Let’s fill them in one at a time before I give a final answer.'
+        if model=='savings_goal' and values.get('monthly_income') is not None and 'monthly_expenses' in unknown:
+            result['assistant_message']='I know what you earn, but not how much is available after your expenses. I also need the other items marked “Still unknown” before I can answer. Let’s fill them in one at a time.'
+    return result
+
+
 def resolve(req, facts):
     meta = req.get('extraction_meta') or {}
     model = meta.get('model')
@@ -61,14 +129,13 @@ def resolve(req, facts):
     # Savings monthly_spending is canonicalized to monthly_expenses by its registry.
     for group in registry.required_inputs(target,values):
         if any(all(values.get(name) is not None for name in option) for option in group):continue
-        option = min(group,key=lambda names:sum(values.get(n) is None for n in names))
+        option = choose_input_option(group,values)
         missing = next(n for n in option if values.get(n) is None)
         if calendar_deadline is not None and group == (('goal_deadline',), ('contribution_months',)):
             return None, question('contribution_months','How many monthly contributions will you make before your stated deadline?')
         if missing == 'monthly_surplus' and model == 'budget_cash_flow':
             return None, enrich_question(question(missing,'How much do you have left each month after all current expenses, including your current rent?'),model,target,values)
-        alternatives = ' or '.join(' and '.join(n.replace('_',' ') for n in names) for names in group)
-        response=question(missing,'What is your '+alternatives+'?')
+        response=question(missing,input_question(missing))
         return None, enrich_question(response,model,target,values)
     selection={'model':model,'target_variable':target,'definition':registry.selection_schema(),'supporting_targets':meta.get('supporting_targets',[])}
     selection['input_plan']=input_plan(model,target,facts)

@@ -1,0 +1,91 @@
+{
+  "request": {
+    "original_question": "My trip fund has $100. I\u2019ll add $60 at the end of every week for the next eight weeks. How much will I have after the eighth deposit?",
+    "assumptions": [
+      {
+        "variable": "current_savings",
+        "value": 100
+      },
+      {
+        "variable": "contribution_entries",
+        "value": "[{\"amount\": 60, \"frequency\": \"weekly\", \"count\": 8}]"
+      }
+    ]
+  },
+  "calculation": {
+    "status": "conditional",
+    "target_variable": "projected_savings",
+    "answer": {
+      "headline": "You will have $580 after the eighth deposit."
+    },
+    "factors": [
+      {
+        "variable": "projected_savings",
+        "value": 580,
+        "unit": "$",
+        "role": "derived",
+        "source": "inferred",
+        "source_detail": "Main calculation"
+      }
+    ],
+    "verification": {
+      "status": "unverified",
+      "target_variable": "projected_savings",
+      "main_value": 580,
+      "unit": "$"
+    },
+    "explanations": [
+      {
+        "label": "Main calculation",
+        "text": "100 + 60 \u00d7 8 = 580"
+      }
+    ],
+    "narrative": {
+      "text": "You start with $100. Your 8 deposits of $60, one each week, add $480. After the last deposit, your balance is $580.",
+      "suggestions": [
+        "What if I make 9 deposits instead?",
+        "What if I deposit $70 each week?"
+      ]
+    },
+    "visuals": {
+      "kind": "deposits",
+      "period": "week",
+      "start": 100.0,
+      "amount": 60.0,
+      "timeline": [
+        {
+          "deposit": 1,
+          "balance": 160.0
+        },
+        {
+          "deposit": 2,
+          "balance": 220.0
+        },
+        {
+          "deposit": 3,
+          "balance": 280.0
+        },
+        {
+          "deposit": 4,
+          "balance": 340.0
+        },
+        {
+          "deposit": 5,
+          "balance": 400.0
+        },
+        {
+          "deposit": 6,
+          "balance": 460.0
+        },
+        {
+          "deposit": 7,
+          "balance": 520.0
+        },
+        {
+          "deposit": 8,
+          "balance": 580.0
+        }
+      ]
+    }
+  }
+}

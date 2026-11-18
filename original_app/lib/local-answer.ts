@@ -13,6 +13,9 @@ export function parseSimpleAnswer(text: string, unit: string | null): number | n
   if (u === '$' && t.includes('month')) return null;
   const numbers = t.match(/\d[\d,]*(?:\.\d+)?/g);
   if (!numbers || numbers.length !== 1) return null;
+  // Named financial statements belong to extraction, not the currently open
+  // slot ("I earn 200" must never become a spending or contribution answer).
+  if (!/^(?:(?:probably|about|around|roughly|approximately|maybe)\s+)*\$?\d[\d,]*(?:\.\d+)?\s*(?:k|grand|thousand)?\s*(?:dollars?|usd)?\s*(?:months?|mo|\/month|\/mo|a month|per month|each month|monthly)?\s*[.!]?$/i.test(t)) return null;
   let n = Number(numbers[0].replaceAll(',', ''));
   if (!Number.isFinite(n)) return null;
   if (/\d\s*k\b|grand|thousand/.test(t)) n *= 1000;
@@ -25,6 +28,7 @@ export function applyLocalAnswer(extraction: ExtractionResponse, variable: strin
   return {
     ...extraction,
     assumptions: extraction.assumptions.map(a => a.variable === variable ? { ...a, value, source: 'stated', source_detail: `You said “${said.trim()}”` } : a),
+    ...(extraction.factors ? { factors: extraction.factors.map(f => f.variable === variable ? { ...f, value, role: 'known' as const, source: 'stated' as const, source_detail: `You said “${said.trim()}”` } : f) } : {}),
     clarification_questions: extraction.clarification_questions.filter(q => q.target_variable !== variable),
   };
 }

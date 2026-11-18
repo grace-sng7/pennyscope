@@ -314,6 +314,11 @@ def _advisory_calculate(draft, facts, selection, req, key, parameters):
     # Genuine missing facts are handled by resolve() and Main.missing_inputs
     # before a completed answer reaches this function. Inspector is advisory here.
     response['verification']=verification
+    try:
+        import answer_presentation
+        response=answer_presentation.attach(response,draft,selection,req,facts,actual)
+    except Exception:
+        pass # Optional narration/plots never block the answer.
     from contract import CalculateResponse
     CalculateResponse.model_validate(response)
     with LOCK:
@@ -672,4 +677,19 @@ Their final share is their_subtotal + their fee. Round final currency shares to
 cents and ensure they sum to the complete bill. An equal shared item does not
 make separately owned items or proportional fees equal across all participants.
 Return these individual final shares in amounts_owed, preserving participants.
+"""
+
+MAIN += """
+OPTIONAL USER-FACING PRESENTATION (after completing your primary calculation):
+For a completed answer also return narrative={text,suggestions,primary_value}.
+Adapt Grace's friendly explanation: 3-5 short sentences, second person, no headings
+or tables. Explain the practical meaning, the 2-3 relevant numbers and their
+source, and one practical next step. Use only amounts in your inputs and results;
+no automatic price estimates. Do not request unrelated facts for a chart.
+primary_value must equal your requested final result. Your explanation must agree
+with that final result, never a competing answer. suggestions are 2-3 short what-if
+messages the USER might send next, changing one value relevant to this question.
+A suggested hypothetical is not a supplied fact. Use only the selected model and
+requested target; budgets do not acquire savings deadlines and bills need no income.
+Presentation is optional: never withhold an answer because it lacks chart data.
 """

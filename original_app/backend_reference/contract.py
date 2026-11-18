@@ -182,6 +182,10 @@ class ChatFallbackRequest(BaseModel):
 
 
 class CalculateResponse(BaseModel):
+    # Optional presentation is validated independently; malformed extras cannot
+    # invalidate a usable Main answer at this API boundary.
+    narrative: Optional[dict[str, Any]] = None
+    visuals: Optional[dict[str, Any]] = None
     chat_fallback: Optional[PlainChat] = None
     verification: Optional[Verification] = None
     inferred_information: list[dict[str, Any]] = Field(default_factory=list)

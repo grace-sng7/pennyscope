@@ -1,3 +1,4 @@
+import type { Narrative, Visuals } from './answer-presentation';
 import { validateModelContext, type ModelContext, type FactorRole } from './model-factors';
 import type { PlainChat } from './plain-chat';
 import { parseEdit } from './field-values';
@@ -37,6 +38,8 @@ export interface Verification {
   message?: string;
 }
 interface ResponseContent extends ModelContext {
+  narrative?: Narrative;
+  visuals?: Visuals;
   chat_fallback?: PlainChat;
   verification?: Verification;
   information: (EditableField & { source: string; sourceDetail: string; confirmable: boolean })[];
