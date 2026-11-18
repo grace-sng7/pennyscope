@@ -33,10 +33,14 @@
 .profileBadge { position: absolute; right: -2px; bottom: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--pen); box-shadow: 0 0 0 2px var(--background); display: grid; place-items: center; }
 .headerRight button:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink-sb); }
 .sheetToggle { display: none; }
+.headerRight .sheetToggleHome { display: inline-block; }
+.headerRight .sheetToggleHome[aria-expanded='true'] { background: var(--note); }
+.sheetHidden { display: none; }
 .body { flex: 1; min-height: 0; display: flex; }
 
 /* Thread */
-.thread { flex: 1; overflow-y: auto; padding: 32px 28px 12px; display: flex; flex-direction: column; gap: 18px; max-width: 840px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.thread { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 28px 12px; display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.thread > * { width: 100%; max-width: 784px; }
 .row { display: flex; gap: 12px; align-items: flex-start; }
 .row.user { justify-content: flex-end; }
 .avatar { flex: none; width: 38px; height: 38px; margin-top: -3px; display: grid; place-items: center; }
@@ -206,28 +210,27 @@
 .composer button:hover:not(:disabled) { background: var(--pen-dark); }
 
 /* Home page */
-.welcome { margin: auto 0; padding: 28px 0 24px; flex: none; }
+.welcome { margin: auto 0; padding: 12px 0 16px; flex: none; }
 .kicker { margin: 0 0 8px; font-family: var(--font-hand); font-size: 24px; font-weight: 700; line-height: 1.1; color: var(--pen); }
-.welcome h1 { font-family: var(--font-ui); font-size: 52px; font-weight: 900; line-height: 1.05; letter-spacing: -1.5px; margin: 0; color: var(--ink-sb); }
-.highlight { font-family: var(--font-hand); font-size: 1.42em; font-weight: 700; letter-spacing: 0; line-height: .9; color: var(--pen); padding: 0 8px;
+.welcome h1 { font-family: var(--font-ui); font-size: 42px; font-weight: 900; line-height: 1.05; letter-spacing: -1.2px; margin: 0; color: var(--ink-sb); }
+.highlight { white-space: nowrap; font-family: var(--font-hand); font-size: 1.42em; font-weight: 700; letter-spacing: 0; line-height: .9; color: var(--pen); padding: 0 8px;
   background: linear-gradient(100deg, transparent 1%, var(--highlight) 2%, var(--highlight) 97%, transparent 98%) 0 78% / 100% 34% no-repeat; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-.heroAsk { position: relative; margin-top: 96px; }
-.mascot { position: absolute; right: 28px; top: -88px; display: flex; align-items: flex-end; gap: 6px; pointer-events: none; z-index: 1; }
+.heroAsk { position: relative; margin-top: 78px; }
+.mascot { position: absolute; right: 28px; top: -80px; display: flex; align-items: flex-end; gap: 6px; pointer-events: none; z-index: 1; }
 .mascotBubble { margin-bottom: 46px; padding: 8px 14px 10px; background: var(--paper); border: 1.5px solid var(--ink-sb); border-radius: 18px 18px 4px 18px; box-shadow: var(--lift);
   font-family: var(--font-hand); font-size: 23px; font-weight: 700; line-height: 1.05; color: var(--pen); white-space: nowrap; transform: rotate(-2deg); }
 .mascotCoin { flex: none; transform: rotate(6deg); filter: drop-shadow(2px 4px 0 rgba(29, 35, 51, .12)); }
 .composerHero { position: relative; flex-direction: column; align-items: stretch; gap: 0; padding: 0; margin: 0; max-width: none; background: var(--paper); border: 1.5px solid var(--ink-sb); border-radius: 20px; box-shadow: 8px 8px 0 #E3DACA; }
 .composerHero::before { content: ''; position: absolute; top: -12px; left: 28px; right: 160px; height: 24px; pointer-events: none;
   background: radial-gradient(ellipse 5px 11px at 50% 50%, #FAF7F1 0 3.2px, #9A9284 3.6px 5.4px, transparent 5.8px) 0 0 / 40px 24px repeat-x; }
-.composerHero textarea { border: 0; border-radius: 20px 20px 0 0; min-height: 128px; max-height: 260px; padding: 22px 20px 8px; font-size: 19px; line-height: 32px; background: repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px) 0 22px / 100% 32px; }
+.composerHero textarea { border: 0; border-radius: 20px; min-height: 96px; max-height: 200px; padding: 22px 132px 8px 20px; font-size: 19px; line-height: 32px; background: repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px) 0 22px / 100% 32px; }
 .composerHero textarea:focus-visible { outline-offset: -3px; }
-.composerHero button { align-self: flex-end; margin: 12px; min-height: 48px; }
-.composerHero::after { content: ''; display: block; position: absolute; left: 0; right: 0; bottom: 72px; border-top: 1px solid var(--edge); pointer-events: none; }
-.exampleSection { margin-top: 44px; }
+.composerHero button { position: absolute; right: 12px; bottom: 12px; min-height: 48px; }
+.exampleSection { margin-top: 30px; }
 .suggestionsHeading { margin: 0 0 10px; font-family: var(--font-hand); font-size: 22px; font-weight: 700; letter-spacing: 0; color: var(--muted-sb); }
 .suggestions { display: flex; flex-direction: column; counter-reset: ex; border-bottom: 1px solid var(--edge); }
-.suggestions button { counter-increment: ex; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; text-align: left; border: 0; border-top: 1px solid var(--edge); border-radius: 0; padding: 16px 4px 16px 0; background: transparent; color: var(--ink-sb); font-size: 15px; line-height: 1.5; font-weight: 400; }
-.suggestions button::before { content: counter(ex); display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1.8px solid var(--pen); border-radius: 50% 46% 52% 48%; font-family: var(--font-num); font-size: 18px; font-weight: 700; color: var(--pen); transform: rotate(-4deg); }
+.suggestions button { counter-increment: ex; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; border: 0; border-top: 1px solid var(--edge); border-radius: 0; padding: 11px 4px 11px 0; background: transparent; color: var(--ink-sb); font-size: 15px; line-height: 1.5; font-weight: 400; }
+.suggestions button::before { content: counter(ex); display: inline-grid; place-items: center; width: 28px; height: 28px; border: 1.8px solid var(--pen); border-radius: 50% 46% 52% 48%; font-family: var(--font-num); font-size: 18px; font-weight: 700; color: var(--pen); transform: rotate(-4deg); }
 .suggestions button:hover { background: rgba(255, 241, 168, .35); }
 .suggestions button:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; }
 
@@ -255,6 +258,7 @@
   .mascotBubble { margin-bottom: 26px; font-size: 20px; }
   .mascotCoin { width: 72px; height: 72px; }
   .composerHero::before { right: 28px; }
+  .composerHero textarea { padding-right: 20px; padding-bottom: 72px; }
   .answerBox { padding: 28px 18px 18px; }
   .headline { font-size: 22px; }
 }

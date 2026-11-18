@@ -307,7 +307,7 @@ export default function ChatApp() {
     <header className={s.header}>
       <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
-      <div className={s.headerRight}><button type="button" className={s.sheetToggle} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>Working sheet</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
+      <div className={s.headerRight}><button type="button" className={`${s.sheetToggle} ${empty ? s.sheetToggleHome : ''}`} onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen} aria-controls="working-sheet">Working sheet</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
     </header>
     <div className={s.body}>
       <main className={s.thread} aria-live="polite">
@@ -326,7 +326,7 @@ export default function ChatApp() {
           </div></div>)}
         <div ref={bottom} />
       </main>
-      <div className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
+      <div id="working-sheet" className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : ''} ${empty && !sheetOpen ? s.sheetHidden : ''}`}><WorkingSheet extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></div>
     </div>
     {!empty && composer}
     {profileOpen && <ProfilePanel profile={profile} onClose={() => setProfileOpen(false)}
