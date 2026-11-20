@@ -11,7 +11,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'backend_reference'))
 import extraction_service as e
 import factor_selection as fs
 from factor_registry import REGISTRIES,get_registry
-from main import app
+from legacy_main import app
 
 
 def selected(target,values):

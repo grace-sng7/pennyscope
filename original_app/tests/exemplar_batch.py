@@ -27,7 +27,7 @@ import orchestration as orchestration
 import dynamic_models
 import extraction_evidence
 import calculation_handoff
-from main import app
+from legacy_main import app
 
 OUTPUT=ROOT/'original_app/tests/regression_artifacts'
 EXPECTED={
