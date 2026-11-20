@@ -31,7 +31,7 @@ class FakeLLM:
     def call_json(self, system, prompt, *, stage, response_schema=None):
         self.stages.append(stage)
         if stage == 'model_routing':
-            return {'model': self.model}
+            return {'model': self.model, **({'reason': self.reason} if getattr(self, 'reason', None) else {})}
         if stage == 'factor_extraction':
             return self.extractions.pop(0)
         return {'text': 'Explanation from the computed numbers.', 'suggestions': ['What if it costs more?']}
@@ -115,6 +115,36 @@ class Pipeline(unittest.TestCase):
             fact('monthly_income', 2400), fact('monthly_spending', 1600), fact('available_savings', 900), fact('goal_amount', 2500), fact('months', 4)]))
         _, calc = self.run_case('Can I afford a $2,500 laptop by next March?', llm)
         self.assertEqual(calc['answer']['headline'], 'Affordability status: Yes. Projected savings: $4,100.00')
+        reasoning = calc['reasoning']
+        self.assertEqual(reasoning['route']['path'], 'model')
+        self.assertEqual(reasoning['route']['title'], 'Savings Projection / One Time Affordability')
+        self.assertEqual([(st['label'], st['work'], st['result']) for st in reasoning['steps']], [
+            ('Monthly contribution', '$2,400 − $1,600', '$800/mo'),
+            ('Projected savings', '$900 + $800 × 4', '$4,100'),
+            ('Can you afford it?', '$4,100 ≥ $2,500', 'Yes, with $1,600 to spare')])
+        self.assertEqual({a['variable'] for a in reasoning['assumptions']},
+                         {'monthly_income', 'monthly_spending', 'available_savings', 'goal_amount', 'months'})
+
+    def test_extraction_reports_matched_model_and_reason(self):
+        llm = FakeLLM('debt_repayment', dict(target='estimated_payoff_months', facts=[fact('principal_balance', 5000)]))
+        llm.reason = 'You’re asking how long a balance takes to pay off.'
+        ex, _ = self.run_case('I owe $5,000. How long to pay it off?', llm)
+        self.assertEqual(ex['route'], {'path': 'model', 'model': 'debt_repayment', 'title': 'Basic Debt Repayment',
+                                       'reason': 'You’re asking how long a balance takes to pay off.'})
+
+    def test_steps_for_each_model(self):
+        cases = [
+            ('budget_cash_flow', dict(target='affordability_status', facts=[fact('monthly_surplus', 500), fact('replaced_recurring_cost', 1000), fact('recurring_cost', 1400)]),
+             ['Change in monthly spending', 'Projected monthly surplus', 'Does it fit?']),
+            ('bill_split', dict(target='settlements', facts=[fact('total_bill', 90), fact('participants', ['Alex', 'Jamie', 'me']), fact('split_method', 'equal'), fact('amounts_paid', {'Alex': 90})]),
+             ['Each person’s share', 'Net balance', 'Who pays whom']),
+            ('debt_repayment', dict(target='estimated_payoff_months', supporting_targets=['total_interest'], facts=[fact('principal_balance', 1000), fact('apr', 12), fact('monthly_payment', 510)]),
+             ['Monthly interest rate', 'First month’s interest', 'Months to pay off', 'Total interest', 'Total repayment']),
+        ]
+        for model, extraction, labels in cases:
+            with self.subTest(model):
+                _, calc = self.run_case('...', FakeLLM(model, extraction))
+                self.assertEqual([st['label'] for st in calc['reasoning']['steps']], labels)
 
     def test_S4_weekly_deposits(self):
         llm = FakeLLM('savings_goal', dict(target='projected_savings', facts=[
@@ -181,6 +211,7 @@ class Pipeline(unittest.TestCase):
         self.assertIsNone(calc)
         self.assertEqual(ex['chat_fallback'], {'kind': 'answer', 'text': 'Index funds spread risk across many companies.'})
         self.assertNotIn('factor_extraction', llm.stages)
+        self.assertEqual(ex['route']['path'], 'free')
 
     def test_new_question_mid_chat_switches_model(self):
         llm = FakeLLM('debt_repayment', dict(target='estimated_payoff_months', facts=[fact('principal_balance', 5000), fact('monthly_payment', 200)]))

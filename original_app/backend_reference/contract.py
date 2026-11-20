@@ -185,6 +185,7 @@ class CalculateResponse(BaseModel):
     # Optional presentation is validated independently; malformed extras cannot
     # invalidate a usable Main answer at this API boundary.
     narrative: Optional[dict[str, Any]] = None
+    reasoning: Optional[dict[str, Any]] = None   # route + assumptions + worked steps, for display
     visuals: Optional[dict[str, Any]] = None
     chat_fallback: Optional[PlainChat] = None
     verification: Optional[Verification] = None

@@ -1,5 +1,6 @@
 import { readNarrative, readVisuals } from './answer-presentation';
 import { validateModelContext, type ModelContext } from './model-factors';
+import { readReasoning } from './reasoning';
 // Wire format between this frontend and the Python backend (see BACKEND_CONTRACT.md).
 // The Python side only ever sees these simple shapes. All UI-specific structure
 // (bindings, controls, answer segments) is built HERE so backend authors never need it.
@@ -114,7 +115,7 @@ export function fromCalculateWire(raw: unknown, request: CalculationRequest): Ca
   const status = w.status;
   if (status !== 'ready' && status !== 'conditional' && status !== 'needs_input' && status !== 'unsupported') return fail(`status must be ready, conditional, needs_input or unsupported (got ${String(status)})`);
   const { extraction, edits, answers } = request;
-  const base = { ...emptyContent(), ...validateModelContext(w), narrative: readNarrative(w.narrative), visuals: presentationVisuals(w) };
+  const base = { ...emptyContent(), ...validateModelContext(w), narrative: readNarrative(w.narrative), reasoning: readReasoning(w.reasoning), visuals: presentationVisuals(w) };
 
   if (w.verification != null) {
     const verification = rec(w.verification, 'verification');

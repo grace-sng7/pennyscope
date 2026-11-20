@@ -12,6 +12,7 @@
 Responses keep the existing /extract, /correct, /calculate wire shapes.
 """
 import json
+import re
 import sys
 from decimal import Decimal
 from pathlib import Path
@@ -141,7 +142,9 @@ If the question fits none of them (e.g. investing, taxes, dated cash timing, gen
 return "none". Missing numbers are NOT a reason for "none": still choose the model.
 When an active question is given, a follow-up that only supplies or changes facts, or asks a
 what-if about it, keeps the active model.
-Return JSON only: {{"model": "budget_cash_flow" | "savings_goal" | "bill_split" | "debt_repayment" | "none"}}'''
+Also give a one-sentence reason the user can read, e.g. "You're asking whether savings plus monthly
+leftover can cover a one-time purchase by a date."
+Return JSON only: {{"model": "budget_cash_flow" | "savings_goal" | "bill_split" | "debt_repayment" | "none", "reason": "..."}}'''
 
 EXTRACT_PROMPT = '''You extract inputs for the Penny Scope "{title}" model. Do NOT calculate anything.
 Model use: {use_when}
@@ -158,10 +161,13 @@ Rules:
 Return JSON only: {{"target": "...", "supporting_targets": [], "facts": [{{"variable": "...", "value": ..., "how": "stated"|"inferred", "note": "short quote or reason"}}], "summary": "one sentence restating the goal"}}'''
 
 FREE_PROMPT = '''You are Penny Scope, a friendly personal finance helper. This question is outside the four
-calculators (budget, savings, bill splitting, debt), so think it through freely. Use the user's numbers,
-show the key arithmetic in a sentence or two, and state any assumption you make. If a personal fact you
-truly need is missing, ask ONE short question instead. No tables, no JSON. You are not a licensed advisor;
-avoid specific investment recommendations.
+calculators (budget, savings, bill splitting, debt), so think it through freely, using the user's numbers.
+If a personal fact you truly need is missing, ask ONE short question instead.
+Plain text only: no markdown, no asterisks, no headings, no tables, no JSON. Lay an answer out in this order:
+a one or two sentence answer; a blank line; "Assumptions:" then each assumption on its own line starting
+with "- "; a blank line; "Steps:" then numbered lines ("1. ", "2. ") showing how you reasoned, with any
+arithmetic written out. Keep it under 200 words. You are not a licensed advisor; avoid specific
+investment recommendations.
 Start with exactly ANSWER: or QUESTION:, then your reply.'''
 
 EXPLAIN_PROMPT = '''You explain a finished Penny Scope calculation to the user in 2-4 short, friendly sentences
@@ -174,15 +180,31 @@ def _call_json(system, payload, stage, schema):
     return gemini_gateway.call_json(system, json.dumps(payload, default=str), stage=stage, response_schema=schema)
 
 
-def classify(question, *, active_model=None, active_question=None):
+def route(question, *, active_model=None, active_question=None):
+    """Which model fits, and a short reason the UI can show."""
     models = '\n'.join(f'- {k}: {v["use_when"]}' for k, v in MODELS.items())
-    schema = {'type': 'object', 'properties': {'model': {'type': 'string', 'enum': [*MODELS, 'none']}}, 'required': ['model']}
+    schema = {'type': 'object', 'properties': {'model': {'type': 'string', 'enum': [*MODELS, 'none']},
+                                               'reason': {'type': 'string'}}, 'required': ['model']}
     payload = {'question': question}
     if active_model:
         payload.update(active_model=active_model, active_question=active_question)
     raw = _call_json(CLASSIFY_PROMPT.format(models=models), payload, 'model_routing', schema)
-    model = raw.get('model')
-    return model if model in MODELS else 'none'
+    model = raw.get('model') if raw.get('model') in MODELS else 'none'
+    reason = raw.get('reason') if isinstance(raw.get('reason'), str) else ''
+    return route_info(model, reason.strip())
+
+
+def classify(question, **kwargs):
+    return route(question, **kwargs)['model']
+
+
+def route_info(model, reason=''):
+    """The match shown to the user: one of the four models, or free thinking."""
+    if model in MODELS:
+        return dict(path='model', model=model, title=MODELS[model]['title'],
+                    reason=reason or f'This question fits the {MODELS[model]["title"]} model.')
+    return dict(path='free', model='none', title='Free thinking',
+                reason=reason or 'This question doesn’t fit one of the four calculators, so I reasoned it out directly.')
 
 
 def _extract_raw(model, question, *, reference_date, correction=None, previous=None, profile=None):
@@ -215,6 +237,8 @@ def free_think(question, facts=(), correction=None):
     except Exception:
         return {'kind': 'limitation', 'text': 'I couldn’t work this one out right now. Please try again.'}
     kind = 'answer'
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text).replace('**', '')      # the chat shows plain text
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.M)
     for label in ('ANSWER:', 'QUESTION:'):
         if text.upper().startswith(label):
             kind, text = label[:-1].lower(), text[len(label):].strip()
@@ -340,7 +364,7 @@ def missing_inputs(model, target, facts, supporting=()):
 
 
 # ------------------------------------------------------------ /extract, /correct
-def _extraction_response(model, target, supporting, facts, question, summary, history):
+def _extraction_response(model, target, supporting, facts, question, summary, history, matched=None):
     spec = MODELS[model]
     missing = missing_inputs(model, target, facts, supporting)
     assumptions = list(facts.values()) + [
@@ -357,11 +381,12 @@ def _extraction_response(model, target, supporting, facts, question, summary, hi
         goal_summary=summary or f'{spec["title"]}: {target.replace("_", " ")}.',
         confidence_note='Calculated with the ' + spec['title'] + ' formulas once every required input is known.',
         model=model, target_variable=target, supporting_targets=supporting, factors=factors,
+        route=matched or route_info(model),
         selection_state=dict(model=model, active_question=question, history=history[-12:]))
 
 
-def _free_response(question, facts, correction=None, history=()):
-    return dict(assumptions=list(facts.values()) if isinstance(facts, dict) else [], clarification_questions=[],
+def _free_response(question, facts, correction=None, history=(), matched=None):
+    return dict(route=matched or route_info('none'), assumptions=list(facts.values()) if isinstance(facts, dict) else [], clarification_questions=[],
                 goal_summary='Thinking this through without a fixed formula.',
                 confidence_note='No Penny Scope model fits this question, so this is a free-form answer.',
                 selection_state=dict(model=None, active_question=question, history=list(history)[-12:]),
@@ -370,35 +395,39 @@ def _free_response(question, facts, correction=None, history=()):
 
 def extract(question, reference_date, *, profile=None):
     history = [{'role': 'user', 'content': question}]
-    model = classify(question)
+    matched = route(question)
+    model = matched['model']
     if model == 'none':
-        return _free_response(question, {}, history=history)
+        return _free_response(question, {}, history=history, matched=matched)
     raw = _extract_raw(model, question, reference_date=reference_date, profile=profile)
-    return _from_raw(model, raw, {}, question, history)
+    return _from_raw(model, raw, {}, question, history, matched)
 
 
-def _from_raw(model, raw, previous, question, history):
+def _from_raw(model, raw, previous, question, history, matched=None):
     target = raw.get('target') if raw.get('target') in MODELS[model]['targets'] else MODELS[model]['targets'][0]
     supporting = [t for t in raw.get('supporting_targets') or [] if t in MODELS[model]['targets'] and t != target]
     facts = {**previous, **_clean(model, raw.get('facts'))}
-    return _extraction_response(model, target, supporting, facts, question, raw.get('summary'), history)
+    return _extraction_response(model, target, supporting, facts, question, raw.get('summary'), history, matched)
 
 
 def correct(question, reference_date, previous_extraction, correction, *, profile=None):
     state = previous_extraction.get('selection_state') or {}
     history = [*(state.get('history') or [{'role': 'user', 'content': question}]), {'role': 'user', 'content': correction}]
     active = previous_extraction.get('model') if previous_extraction.get('model') in MODELS else None
-    model = classify(correction, active_model=active, active_question=question)
+    matched = route(correction, active_model=active, active_question=question)
+    model = matched['model']
+    if model == active and previous_extraction.get('route'):
+        matched = previous_extraction['route']  # same question: keep the original match and its reason
     previous = {a['variable']: a for a in previous_extraction.get('assumptions', []) if a.get('value') is not None}
     if model == 'none':
-        return _free_response(question, previous, correction, history)
+        return _free_response(question, previous, correction, history, matched)
     if model != active:  # a new question: start fresh with its own model
         question, previous, history = correction, {}, [{'role': 'user', 'content': correction}]
         raw = _extract_raw(model, question, reference_date=reference_date, profile=profile)
     else:
         previous = {k: v for k, v in previous.items() if k in MODELS[model]['inputs']}
         raw = _extract_raw(model, question, reference_date=reference_date, correction=correction, previous=previous, profile=profile)
-    return _from_raw(model, raw, previous, question, history)
+    return _from_raw(model, raw, previous, question, history, matched)
 
 
 # --------------------------------------------------------------- formulas
@@ -508,6 +537,11 @@ def run_formulas(model, target, facts, supporting=()):
 
 
 # ------------------------------------------------------------- /calculate
+LIMITATIONS = {'budget_cash_flow': ['Uses monthly averages; exact payment dates can differ.'],
+               'savings_goal': ['Assumes steady contributions and no interest or returns.'],
+               'bill_split': ['Cents are reconciled so the shares add up to the bill.'],
+               'debt_repayment': ['Assumes a fixed APR charged monthly before each payment, with no fees or new charges.']}
+
 def _show(name, value):
     unit = TARGET_UNITS.get(name)
     value = _decoded(value)
@@ -524,6 +558,136 @@ def _show(name, value):
         return f'{value} month{"s" if str(value) != "1" else ""}'
     text = '$' + format(ft.D(value).quantize(Decimal('0.01')), ',.2f')
     return text + (' / month' if unit == M else '')
+
+
+def _m(value):
+    """Money for the worked steps: $2,400 or $12.50, with a minus sign for negatives."""
+    n = ft.D(value).quantize(Decimal('0.01'))
+    text = format(abs(n), ',.2f').removesuffix('.00')
+    return ('−$' if n < 0 else '$') + text
+
+
+def _who(name):
+    return 'You' if str(name).lower() == 'me' else str(name)
+
+
+def _step(label, formula, work, result):
+    return dict(label=label, formula=formula, work=work, result=result)
+
+
+def worked_steps(model, target, facts, results, supporting=()):
+    """The formulas actually used, in order, with the user's numbers plugged in."""
+    g = lambda n, d=None: _value(facts, n, d)
+    targets = [target, *supporting]
+    steps = []
+    if model == 'budget_cash_flow':
+        surplus = results['monthly_surplus']
+        if g('monthly_income') is not None and g('monthly_spending') is not None:
+            steps.append(_step('Monthly surplus', 'Monthly income − Monthly spending',
+                               f'{_m(g("monthly_income"))} − {_m(g("monthly_spending"))}', f'{_m(surplus)}/mo'))
+        if 'projected_surplus' in results:
+            change = ft.D(g('spending_change', 0))
+            if g('recurring_cost') is not None:
+                freq = g('recurring_cost_frequency', 'monthly')
+                new, old = ft.monthly(g('recurring_cost'), freq), ft.monthly(g('replaced_recurring_cost', 0))
+                if freq != 'monthly':
+                    steps.append(_step('New cost per month', f'{str(freq).capitalize()} cost converted to a monthly amount',
+                                       f'{_m(g("recurring_cost"))} {freq}', f'{_m(new)}/mo'))
+                extra = f' + {_m(change)}' if change else ''
+                steps.append(_step('Change in monthly spending', 'New cost − Current cost' + (' + Other change' if change else ''),
+                                   f'{_m(new)} − {_m(old)}{extra}', f'{_m(results["spending_change"])}/mo'))
+                change = results['spending_change']
+            projected = results['projected_surplus']
+            steps.append(_step('Projected monthly surplus', 'Current surplus + Income change − Spending change',
+                               f'{_m(surplus)} + {_m(g("income_change", 0))} − {_m(change)}', f'{_m(projected)}/mo'))
+            steps.append(_step('Does it fit?', 'Projected surplus must be at least $0',
+                               f'{_m(projected)} {"≥" if projected >= 0 else "<"} $0', results['affordability_status']))
+    elif model == 'savings_goal':
+        s, goal = g('available_savings', 0), g('goal_amount')
+        if g('monthly_contribution') is not None:
+            contribution = ft.D(g('monthly_contribution'))
+        elif g('monthly_income') is not None and g('monthly_spending') is not None:
+            contribution = ft.D(g('monthly_income')) - ft.D(g('monthly_spending'))
+            if {'projected_savings', 'months_to_goal', 'affordability_status'} & set(targets) and g('months') != 0:
+                steps.append(_step('Monthly contribution', 'Monthly income − Monthly spending',
+                                   f'{_m(g("monthly_income"))} − {_m(g("monthly_spending"))}', f'{_m(contribution)}/mo'))
+        else:
+            contribution = None
+        if 'projected_savings' in results:
+            proj = results['projected_savings']
+            if g('deposit_amount') is not None and g('deposit_count') is not None:
+                steps.append(_step('Projected savings', 'Savings + Deposit × Number of deposits',
+                                   f'{_m(s)} + {_m(g("deposit_amount"))} × {g("deposit_count")}', _m(proj)))
+            elif g('months') == 0:
+                steps.append(_step('Money available today', 'Savings (a purchase today has no future contributions)', _m(s), _m(proj)))
+            else:
+                steps.append(_step('Projected savings', 'Savings + Monthly contribution × Months',
+                                   f'{_m(s)} + {_m(contribution)} × {g("months")}', _m(proj)))
+        if 'required_monthly_savings' in results:
+            steps.append(_step('Required monthly saving', '(Goal − Savings) ÷ Months, rounded up to the cent',
+                               f'({_m(goal)} − {_m(s)}) ÷ {g("months")}', f'{_m(results["required_monthly_savings"])}/mo'))
+        if 'months_to_goal' in results:
+            steps.append(_step('Months to goal', '(Goal − Savings) ÷ Monthly contribution, rounded up',
+                               f'({_m(goal)} − {_m(s)}) ÷ {_m(contribution or 0)}', _show('months_to_goal', results['months_to_goal'])))
+        if 'affordability_status' in results:
+            proj = results['projected_savings']
+            ok = results['affordability_status'] == 'Yes'
+            steps.append(_step('Can you afford it?', 'Projected savings must be at least the goal',
+                               f'{_m(proj)} {"≥" if ok else "<"} {_m(goal)}',
+                               f'Yes, with {_m(proj - ft.D(goal))} to spare' if ok else f'No, short by {_m(results["shortfall"])}'))
+    elif model == 'bill_split':
+        owed = results['amounts_owed']
+        method = g('split_method')
+        if method == 'equal':
+            people = len(owed)
+            steps.append(_step('Each person’s share', 'Total bill ÷ Number of people', f'{_m(g("total_bill"))} ÷ {people}',
+                               _show('amounts_owed', owed) if len(set(owed.values())) > 1 else f'{_m(next(iter(owed.values())))} each'))
+        elif method == 'itemized':
+            for item in _decoded(g('items')) or []:
+                sharers = [str(p) for p in item.get('shared_by', [])]
+                per = ft.D(item['amount']) / max(len(sharers), 1)
+                steps.append(_step(str(item.get('name') or 'Item').capitalize(), 'Item price ÷ People who shared it',
+                                   f'{_m(item["amount"])} ÷ {len(sharers)} ({", ".join(_who(p) for p in sharers)})',
+                                   f'{_m(per)} each' if len(sharers) > 1 else f'{_m(per)} for {_who(sharers[0]) if sharers else "them"}'))
+            if ft.D(g('tax_amount', 0)) or ft.D(g('tip_amount', 0)):
+                steps.append(_step('Tax and tip', 'Split in proportion to each person’s pretax share',
+                                   f'{_m(g("tax_amount", 0))} tax + {_m(g("tip_amount", 0))} tip', 'Added to each share'))
+            steps.append(_step('Total per person', 'Sum of each person’s items (plus tax and tip)', '', _show('amounts_owed', owed)))
+        else:
+            weights = _decoded(g('split_weights')) or {}
+            total_w = sum(ft.D(w) for w in weights.values())
+            steps.append(_step('Each person’s share', 'Total bill × Weight ÷ Sum of weights',
+                               f'{_m(g("total_bill"))} × weight ÷ {total_w.normalize()}', _show('amounts_owed', owed)))
+        if 'settlements' in results:
+            paid = {str(k): v for k, v in (_decoded(g('amounts_paid')) or {}).items()}
+            work = '; '.join(f'{_who(p)}: {_m(paid.get(p, 0))} − {_m(o)}' for p, o in owed.items())
+            steps.append(_step('Net balance', 'Amount paid − Amount owed', work,
+                               '; '.join(f'{_who(p)}: {_m(v)}' for p, v in results.get('net_balances', {}).items()) or 'Settled'))
+            steps.append(_step('Who pays whom', 'People below $0 pay people above $0', '', _show('settlements', results['settlements'])))
+    elif model == 'debt_repayment':
+        balance, apr = g('principal_balance'), ft.D(g('apr'))
+        rate = format((apr / 12).quantize(Decimal('0.0001')).normalize(), 'f')
+        steps.append(_step('Monthly interest rate', 'APR ÷ 12', f'{format(apr.normalize(), "f")}% ÷ 12', f'{rate}%'))
+        steps.append(_step('First month’s interest', 'Balance × Monthly rate', f'{_m(balance)} × {rate}%', _m(results['monthly_interest'])))
+        if 'required_monthly_payment' in results:
+            formula = 'Balance ÷ Months (no interest)' if apr == 0 else 'Balance × r ÷ (1 − (1 + r)^−Months), rounded up to the cent'
+            steps.append(_step('Required monthly payment', formula,
+                               f'{_m(balance)}, {g("payoff_months")} months' + ('' if apr == 0 else f', r = {rate}%'),
+                               f'{_m(results["required_monthly_payment"])}/mo'))
+        if 'estimated_payoff_months' in results and g('monthly_payment') is not None:
+            steps.append(_step('Months to pay off', 'Each month: add that month’s interest, subtract the payment, until the balance is $0',
+                               f'{_m(balance)} paying {_m(g("monthly_payment"))}/mo', _show('estimated_payoff_months', results['estimated_payoff_months'])))
+        if isinstance(results.get('total_interest'), Decimal):
+            steps.append(_step('Total interest', 'Sum of every month’s interest', '', _m(results['total_interest'])))
+            steps.append(_step('Total repayment', 'Balance + Total interest', f'{_m(balance)} + {_m(results["total_interest"])}',
+                               _m(results['total_repayment'])))
+    return steps
+
+
+def reasoning_assumptions(facts):
+    return [dict(variable=f['variable'], value=f['value'], unit=f.get('unit'),
+                 how='profile' if 'profile' in str(f.get('source_detail', '')).lower() else f['source'],
+                 note=f.get('source_detail') or '') for f in facts.values()]
 
 
 def _plain(value):
@@ -551,7 +715,8 @@ def calculate(req):
         reply = free_think(req.get('original_question', ''), req.get('assumptions', []))
         return {'status': 'conditional' if reply['kind'] == 'answer' else 'needs_input',
                 'answer': {'headline': reply['text']} if reply['kind'] == 'answer' else None,
-                'message': None if reply['kind'] == 'answer' else reply['text'], 'chat_fallback': reply}
+                'message': None if reply['kind'] == 'answer' else reply['text'], 'chat_fallback': reply,
+                'reasoning': dict(route=route_info('none'), assumptions=[], steps=[], notes=[])}
     supporting = [t for t in meta.get('supporting_targets') or [] if t in MODELS[model]['targets']]
     spec = MODELS[model]
     facts = {k: v for k, v in _facts_from_request(req).items() if k in spec['inputs']}
@@ -584,10 +749,13 @@ def calculate(req):
     response = {'status': 'ready', 'model': model, 'target_variable': target, 'factors': factors,
                 'answer': {'headline': headline},
                 'explanations': [{'label': spec['title'] + ' formulas', 'text': ' '.join(spec['formulas'])}],
-                'limitations': {'budget_cash_flow': ['Uses monthly averages; exact payment dates can differ.'],
-                                'savings_goal': ['Assumes steady contributions and no interest or returns.'],
-                                'bill_split': ['Cents are reconciled so the shares add up to the bill.'],
-                                'debt_repayment': ['Assumes a fixed APR charged monthly before each payment, with no fees or new charges.']}[model]}
+                'limitations': LIMITATIONS[model]}
+    try:
+        steps = worked_steps(model, target, facts, results, supporting)
+    except Exception:  # the steps are a display aid; never lose the answer over them
+        steps = []
+    response['reasoning'] = dict(route=meta.get('route') or route_info(model), assumptions=reasoning_assumptions(facts),
+                                 steps=steps, notes=LIMITATIONS[model])
     try:
         raw = _call_json(EXPLAIN_PROMPT, {'question': req.get('original_question'), 'model': spec['title'],
                                           'inputs': {k: v['value'] for k, v in facts.items()},
