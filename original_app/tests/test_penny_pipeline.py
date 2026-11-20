@@ -110,6 +110,12 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(self.result(calc, 'affordability_status'), 'No')
         self.assertEqual(self.result(calc, 'shortfall'), 150)
 
+    def test_affordable_purchase_headline_shows_projected_savings(self):
+        llm = FakeLLM('savings_goal', dict(target='affordability_status', facts=[
+            fact('monthly_income', 2400), fact('monthly_spending', 1600), fact('available_savings', 900), fact('goal_amount', 2500), fact('months', 4)]))
+        _, calc = self.run_case('Can I afford a $2,500 laptop by next March?', llm)
+        self.assertEqual(calc['answer']['headline'], 'Affordability status: Yes. Projected savings: $4,100.00')
+
     def test_S4_weekly_deposits(self):
         llm = FakeLLM('savings_goal', dict(target='projected_savings', facts=[
             fact('available_savings', 100), fact('deposit_amount', 60), fact('deposit_frequency', 'weekly'), fact('deposit_count', 8)]))

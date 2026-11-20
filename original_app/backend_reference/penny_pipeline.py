@@ -569,7 +569,8 @@ def calculate(req):
         return {'status': 'needs_input', 'message': f'I couldn’t run the {spec["title"]} formulas with these inputs ({exc}). Please check the numbers on the working sheet.'}
     shown = [target, *[t for t in supporting if t in results]]
     if target == 'affordability_status' and 'shortfall' in results:
-        shown.append('shortfall')
+        # A $0.00 shortfall says nothing; show the projected balance when it is affordable.
+        shown.append('shortfall' if results['shortfall'] > 0 else 'projected_savings')
     if target == 'projected_surplus' or target == 'affordability_status':
         shown += [n for n in ('spending_change', 'projected_surplus') if n in results and n not in shown]
     headline = '. '.join(f'{n.replace("_", " ").capitalize()}: {_show(n, results[n])}' for n in shown if n in results)
