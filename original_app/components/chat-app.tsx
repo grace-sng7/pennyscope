@@ -11,7 +11,8 @@ import { liveCalculationService, liveExtractionService, recoverPlainChat } from 
 import { calculationService as mockCalculation, extractionService as mockExtraction } from '../lib/services';
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
 import { label, money } from '../lib/workspace-model';
-import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
+import { readRoute, type Route } from '../lib/reasoning';
+import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, RouteBadge, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
 import { Coin } from './coin';
 import { ProfilePanel } from './profile-panel';
 import { clearProfile, financialProfile, hasProfile, loadProfile, monthlyExpenses, saveProfile, type Profile } from '../lib/profile';
@@ -35,7 +36,7 @@ const SUGGESTIONS = [
 
 type Msg =
   | { id: number; role: 'user'; text: string }
-  | { id: number; role: 'bot'; kind: 'text'; text: string; verification?: CalculationResponse['verification']; note?: string; replies?: string[] }
+  | { id: number; role: 'bot'; kind: 'text'; text: string; verification?: CalculationResponse['verification']; note?: string; replies?: string[]; route?: Route }
   | { id: number; role: 'bot'; kind: 'understood'; extraction: ExtractionResponse }
   | { id: number; role: 'bot'; kind: 'answer'; response: CalculationResponse }
   | { id: number; role: 'bot'; kind: 'typing' };
@@ -106,7 +107,7 @@ export default function ChatApp() {
   const withProfile = () => { const fp = financialProfile(profileRef.current); return fp ? { financial_profile: fp } : {}; };
 
   const push = (m: NewMsg) => setMsgs(list => [...list.filter(x => !('kind' in x && x.kind === 'typing')), { ...m, id: ++idRef.current } as Msg]);
-  const bot = (textValue: string, extra: { note?: string; replies?: string[]; verification?: CalculationResponse['verification'] } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
+  const bot = (textValue: string, extra: { note?: string; replies?: string[]; verification?: CalculationResponse['verification']; route?: Route } = {}) => push({ role: 'bot', kind: 'text', text: textValue, ...extra });
   const typing = () => push({ role: 'bot', kind: 'typing' });
   const setExtraction = (value: ExtractionResponse) => {
     // The sheet stays closed and blank until there is something to show. The first time values arrive,
@@ -115,11 +116,12 @@ export default function ChatApp() {
     exRef.current = value; setEx(value);
   };
 
-  const showPlain = (reply: PlainChat) => {
+  const showPlain = (reply: PlainChat, route?: Route) => {
     current.current = null;
     plainQuestion.current = reply.kind === 'question' ? reply.text : null;
     setStage(reply.kind === 'question' ? 1 : 3);
-    bot(reply.text, { verification: reply.verification });
+    // A limitation is an outage message, not a free-thinking answer, so it gets no route badge.
+    bot(reply.text, { verification: reply.verification, ...(route && reply.kind !== 'limitation' ? { route } : {}) });
   };
   const consumePlainExtraction = (result: ExtractionResponse) => {
     const reply = parsePlainChat(result.chat_fallback);
@@ -132,7 +134,7 @@ export default function ChatApp() {
       delete sheet.chat_fallback;
       setExtraction(sheet);
     }
-    showPlain(reply);
+    showPlain(reply, readRoute(result.route));
     return true;
   };
 
@@ -163,7 +165,7 @@ export default function ChatApp() {
     const run = async () => {
       const response = await calculator.calculate(request(originalRef.current, value, paramsRef.current));
       if (response.factors?.length) setReviewedMath({ snapshot: value, response });
-      if (response.chat_fallback) { showPlain(response.chat_fallback); return; }
+      if (response.chat_fallback) { showPlain(response.chat_fallback, response.reasoning?.route); return; }
       if (response.status === 'ready' || response.status === 'conditional') {
         setReviewedMath({ snapshot: value, response });
         current.current = null; setStage(3); push({ role: 'bot', kind: 'answer', response });
@@ -269,6 +271,9 @@ export default function ChatApp() {
         plainQuestion.current = null;
         const diff = changes(before, next);
         setExtraction(next); current.current = null;
+        // A new question that lands on a different model gets its own "matched model" summary.
+        const was = readRoute(before.route), now = readRoute(next.route);
+        if (now && was && now.model !== was.model) { push({ role: 'bot', kind: 'understood', extraction: next }); await proceed(next); return; }
         // A scoped approach has no registered extraction fields to diff, but
         // its conversation still contains meaningful corrections to calculate.
         if (!diff.length && !q && next.model) { bot('Thanks, I’ve noted that. Nothing I use in the numbers changed.'); return; }
@@ -337,7 +342,7 @@ export default function ChatApp() {
           ? <div key={m.id} className={`${s.row} ${s.user}`}><div className={s.bubbleUser}>{m.text}</div></div>
           : <div key={m.id} className={s.row}><span className={s.avatar} aria-hidden="true"><Coin size={38} /></span><div className={m.kind === 'answer' ? s.resultMessage : s.bubble}>
             {m.kind === 'typing' && <Typing />}
-            {m.kind === 'text' && <><QuestionText text={m.text} verification={m.verification} />{m.note && <p className={s.note}>{m.note}</p>}
+            {m.kind === 'text' && <>{m.route && <RouteBadge route={m.route} />}<QuestionText text={m.text} verification={m.verification} />{m.note && <p className={s.note}>{m.note}</p>}
               {m.replies && m.id === lastId && <QuickReplies replies={m.replies} disabled={busy} onPick={send} />}</>}
             {m.kind === 'understood' && <Understood extraction={m.extraction} onPick={pick} />}
             {m.kind === 'answer' && <><PresentationBoundary resetKey={m.response} fallback={<PlainResult response={m.response} />}><AnswerCard response={m.response} interactive={m === lastAnswer} params={params} onParam={onParam} /></PresentationBoundary>

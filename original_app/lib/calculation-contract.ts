@@ -1,6 +1,7 @@
 import type { Narrative, Visuals } from './answer-presentation';
 import { validateModelContext, type ModelContext, type FactorRole } from './model-factors';
 import type { PlainChat } from './plain-chat';
+import type { Reasoning } from './reasoning';
 import { parseEdit } from './field-values';
 import type { AssumptionValue, ExtractionResponse } from './extraction';
 
@@ -39,6 +40,7 @@ export interface Verification {
 }
 interface ResponseContent extends ModelContext {
   narrative?: Narrative;
+  reasoning?: Reasoning;
   visuals?: Visuals;
   chat_fallback?: PlainChat;
   verification?: Verification;

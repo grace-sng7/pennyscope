@@ -10,6 +10,7 @@ import { type CalculationResponse } from '../lib/calculation-contract';
 import type { Assumption, ExtractionResponse } from '../lib/extraction';
 import { money } from '../lib/workspace-model';
 import { fromProfile } from '../lib/profile';
+import { readRoute, type Reasoning, type Route } from '../lib/reasoning';
 import s from '../app/chat/chat.module.css';
 
 export function show(a: Pick<Assumption, 'value' | 'unit'>): string {
@@ -40,6 +41,7 @@ export function Understood({ extraction, onPick }: { extraction: ExtractionRespo
     return [...(mine.length ? [{ ...g, key: g.source as string, factors: mine }] : []), ...(saved.length ? [{ ...g, key: 'profile', source: 'profile' as const, title: 'From your profile', factors: saved }] : [])];
   });
   return <div>
+    <RouteBadge route={readRoute(extraction.route)} />
     <p className={s.bubbleText}>{typeof extraction.assistant_message === 'string' && extraction.assistant_message.trim() ? extraction.assistant_message : extraction.goal_summary || 'Here is what I understood.'}</p>
     {groups.map(g => <div key={g.key} className={s.chipGroup}>
       <span className={s.chipCaption} data-source={g.source}>{g.title}</span>
@@ -79,9 +81,47 @@ export function AnswerSupporting({ response, interactive, disabled, onAsk }: { r
   if (response.status !== 'ready' && response.status !== 'conditional') return null;
   return <div className={s.supporting} aria-label="Supporting explanation">
     {response.visuals && <PresentationBoundary resetKey={response.visuals} fallback={null}><AnswerVisuals v={response.visuals} /></PresentationBoundary>}
-    <MathPanel response={response} />
+    {response.reasoning?.route.path === 'model' ? <ReasoningPanel r={response.reasoning} /> : <MathPanel response={response} />}
     {interactive && !!response.narrative?.suggestions.length && <div><span className={s.chipCaption}>Try a what-if</span><QuickReplies replies={response.narrative.suggestions} disabled={disabled} onPick={onAsk} /></div>}
   </div>;
+}
+
+// Which way the question went: one of the four models, or free thinking when none fits.
+export function RouteBadge({ route }: { route?: Route }) {
+  if (!route) return null;
+  const matched = route.path === 'model';
+  return <div className={s.route} data-path={route.path}>
+    <span className={s.routeTag}>{matched ? 'Matched model' : 'No model matched'}</span>
+    <strong className={s.routeTitle}>{matched ? route.title : 'Free thinking'}</strong>
+    {route.reason && <p className={s.routeReason}>{route.reason}</p>}
+  </div>;
+}
+
+const HOW: Record<string, string> = { stated: 'you told me', inferred: 'I inferred', profile: 'from your profile' };
+const cleanNote = (note: string) => note.replace(/^(Inferred|From your message):\s*/i, '');
+
+// The model's working, in order: the model it picked, the inputs it used, then each formula with the numbers in.
+function ReasoningPanel({ r }: { r: Reasoning }) {
+  const [open, setOpen] = useState(true);
+  return <section className={s.reasoning} aria-label="How I worked it out">
+    <button type="button" className={s.reasoningToggle} aria-expanded={open} onClick={() => setOpen(v => !v)}>
+      <span>How I worked it out</span><span className={s.link}>{open ? 'Hide' : 'Show'}</span></button>
+    {open && <ol className={s.stages}>
+      <li><h4 className={s.stageTitle}>Picked a model</h4><RouteBadge route={r.route} /></li>
+      {r.assumptions.length > 0 && <li><h4 className={s.stageTitle}>What I used</h4>
+        <ul className={s.usedList}>{r.assumptions.map(a => <li key={a.variable} data-how={a.how}>
+          <span className={s.usedLabel}>{factLabel(a.variable)}</span><strong className={s.usedValue}>{factText(a.value, a.unit, a.variable)}</strong>
+          <span className={s.usedHow} data-how={a.how}>{HOW[a.how]}</span>
+          {a.how === 'inferred' && cleanNote(a.note) && <span className={s.usedNote}>{cleanNote(a.note)}</span>}</li>)}</ul>
+        {r.notes.map((n, i) => <p key={i} className={s.muted}>Assumes: {n.replace(/^Assumes\s+/i, '')}</p>)}</li>}
+      {r.steps.length > 0 && <li><h4 className={s.stageTitle}>Ran the formulas</h4>
+        <ol className={s.workSteps}>{r.steps.map((st, i) => <li key={i}>
+          <div className={s.stepHead}><span>{st.label}</span><strong>{st.result}</strong></div>
+          {st.formula && <div className={s.stepFormula}>{st.formula}</div>}
+          {st.work && <code className={s.stepWork}>{st.work} {/[≥<>]/.test(st.work) ? '→' : '='} {st.result}</code>}
+        </li>)}</ol></li>}
+    </ol>}
+  </section>;
 }
 
 function MathPanel({ response }: { response: CalculationResponse }) {
@@ -105,7 +145,9 @@ export function WorkingSheet({ extraction, math, profileSummary, onProfile, intr
       {displayFactors([...factors.values()], math?.target_variable ?? extraction.target_variable).map(a => <li key={a.variable} data-source={category(a)} title={`${CATEGORY_TEXT[category(a)]}: ${a.source_detail}`}>
         <span className={`${s.dot} ${s[category(a) === 'profile' ? 'fromProfile' : category(a)]}`} aria-label={CATEGORY_TEXT[category(a)]} /><span className={s.sheetLabel}>{factLabel(a.variable)}</span><strong className={s.sheetValue}>{factText(a.value, a.unit, a.variable)}</strong></li>)}</ul>}
     {extraction && <p className={s.legend}><span className={`${s.dot} ${s.stated}`} /> stated <span className={`${s.dot} ${s.fromProfile}`} /> profile <span className={`${s.dot} ${s.inferred}`} /> inferred <span className={`${s.dot} ${s.missing}`} /> missing</p>}
-    {math && (math.status === 'ready' || math.status === 'conditional') && math.explanations.length > 0 && <><h2>The math</h2>{math.explanations.map((e, i) => <p key={i} className={s.sheetMath}><strong>{e.label}</strong><br />{e.text}</p>)}</>}
+    {math && (math.status === 'ready' || math.status === 'conditional') && (math.reasoning?.steps.length
+      ? <><h2>The math</h2>{math.reasoning.steps.map((st, i) => <p key={i} className={s.sheetMath}><strong>{i + 1}. {st.label}</strong><br />{st.work ? `${st.work} ${/[≥<>]/.test(st.work) ? '→' : '='} ${st.result}` : st.result}</p>)}</>
+      : math.explanations.length > 0 && <><h2>The math</h2>{math.explanations.map((e, i) => <p key={i} className={s.sheetMath}><strong>{e.label}</strong><br />{e.text}</p>)}</>)}
   </aside>;
 }
 

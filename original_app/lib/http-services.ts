@@ -5,6 +5,7 @@ import { type CalculationRequest, type CalculationResponse, type CalculationServ
 import { chatCalculation, parsePlainChat, plainFromResponse, type PlainChat } from './plain-chat';
 import { fromCalculateWire, toCalculateWire } from './backend-wire';
 import { validateModelContext } from './model-factors';
+import { readReasoning } from './reasoning';
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const FRIENDLY: Record<string, string> = { extract: 'We couldn’t review your description right now. Please retry.', correct: 'We couldn’t apply your corrections right now. Your edits are kept — please retry.', calculate: 'Calculation unavailable.', 'chat-fallback': 'Plain language response unavailable.' };
@@ -34,6 +35,8 @@ export class HttpCalculationService implements CalculationService {
     if (raw && typeof raw === 'object' && 'chat_fallback' in raw && parsePlainChat(raw.chat_fallback) && plain) {
       const response = chatCalculation(plain);
       try { Object.assign(response, validateModelContext(raw)); } catch { /* Plain answer survives invalid card metadata. */ }
+      const reasoning = readReasoning((raw as Record<string, unknown>).reasoning);
+      if (reasoning) response.reasoning = reasoning;
       return response;
     }
     try { return fromCalculateWire(raw, request); } catch (error) {
