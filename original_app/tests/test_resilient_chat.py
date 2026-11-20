@@ -14,7 +14,7 @@ import chat_fallback
 import factor_selection as fs
 import extraction_evidence as evidence
 from factor_registry import get_registry
-from main import app
+from legacy_main import app
 
 ORIGINAL='Nina, Leo, and I shared a $30 pizza equally. Nina also had a $10 salad, and Leo had a $10 drink. Tax and tip together were $10. We agreed to split that $10 in proportion to what each of us ordered before tax and tip. How much does each person owe?'
 PARAPHRASE="The $30 pizza was shared equally by Nina, Leo, and me. The $10 salad was Nina’s. The $10 drink was Leo’s. Tax and tip together cost $10, allocated in proportion to each person’s pre-tax order. What does each person owe?"

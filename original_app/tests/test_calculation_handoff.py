@@ -13,7 +13,7 @@ import orchestration as o
 import extraction_service as e
 import calculation_handoff as h
 from factor_registry import REGISTRIES
-from main import app
+from legacy_main import app
 from test_selection_stages import selected
 from test_dynamic_models import scenario
 

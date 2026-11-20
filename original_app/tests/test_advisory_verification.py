@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'backend_reference'))
 import orchestration as o
-from main import app
+from legacy_main import app
 
 
 def request():

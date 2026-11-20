@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'backend_reference'))
-from main import app
+from legacy_main import app
 from factor_registry import REGISTRIES
 import orchestration as o
 

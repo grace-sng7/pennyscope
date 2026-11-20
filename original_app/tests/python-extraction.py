@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'backend_reference'))
 sys.path.insert(0,str(ROOT/'tests'))
-from main import app
+from legacy_main import app
 from test_selection_stages import selected
 
 
