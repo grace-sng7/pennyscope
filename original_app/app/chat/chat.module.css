@@ -305,3 +305,35 @@
 .stepHead strong { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .stepFormula { color: var(--muted-sb); font-size: 13px; margin-top: 2px; }
 .stepWork { display: block; margin-top: 4px; padding: 6px 10px; border-radius: 8px; background: #F6F1E6; font-family: var(--font-num); font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
+
+/* History: header link and the /history page */
+.headerRight .historyLink, .historyNewChat { display: inline-flex; align-items: center; padding: 9px 16px; min-height: 40px; box-sizing: border-box; font-size: 14px; font-weight: 600; border: 1.5px solid var(--ink-sb); border-radius: 12px; color: var(--ink-sb); background: var(--paper); box-shadow: var(--press); text-decoration: none; }
+.historyNewChat { background: var(--ink-sb); color: var(--background); }
+.headerRight .historyLink:hover, .historyNewChat:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink-sb); }
+.brandLink { text-decoration: none; }
+.historyIcon { display: none; }
+@media (max-width: 600px) { .historyIcon { display: block; } }
+.history { flex: 1; min-height: 0; overflow-y: auto; padding: 32px 28px 48px; width: 100%; max-width: 840px; margin: 0 auto; box-sizing: border-box; }
+.historyTop { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.historyTop h1 { font-size: 38px; font-weight: 900; line-height: 1.05; letter-spacing: -1px; margin: 0; color: var(--ink-sb); }
+.historyEmpty { margin-top: 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; color: var(--soft-sb); }
+.historyEmpty p { margin: 0; font-family: var(--font-read); }
+.historyList { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-direction: column; gap: 14px; }
+.historyList li { display: flex; align-items: stretch; background: var(--paper); border: 1.5px solid var(--ink-sb); border-radius: 16px; box-shadow: var(--lift); overflow: hidden; }
+.historyList li:hover { box-shadow: var(--press); }
+.historyItem { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 14px 18px; color: var(--ink-sb); text-decoration: none; }
+.historyItem:focus-visible { outline: 2px solid var(--pen); outline-offset: -4px; }
+.historyTitle { font-family: var(--font-read); font-weight: 600; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.historyAnswer { align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--ink-sb); background: var(--note); border-radius: 6px; padding: 1px 8px; }
+.historyPending { font-family: var(--font-hand); font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--muted-sb); }
+.historyMeta { font-size: 13px; color: var(--muted-sb); }
+.historyDelete { flex: none; border: 0; border-left: 1.5px dashed var(--edge); border-radius: 0; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted-sb); padding: 0 18px; }
+.historyDelete:hover { color: var(--short); background: #FBEAE6; }
+@media (max-width: 600px) {
+  .history { padding: 20px 16px 40px; }
+  .historyTop h1 { font-size: 32px; }
+  /* Phones: History becomes a round icon button like the profile one, so the header stays on one line. */
+  .headerRight .historyLink { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: none; }
+  .headerRight .historyLink:hover { transform: none; box-shadow: var(--press); }
+  .historyLabel { display: none; }
+}

@@ -12,6 +12,7 @@ import { calculationService as mockCalculation, extractionService as mockExtract
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
 import { label, money } from '../lib/workspace-model';
 import { readRoute, type Route } from '../lib/reasoning';
+import { forResume, getChat, newChatId, saveChat, toRecord, type Msg } from '../lib/history';
 import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, RouteBadge, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
 import { Coin } from './coin';
 import { ProfilePanel } from './profile-panel';
@@ -34,12 +35,6 @@ const SUGGESTIONS = [
   'I want to move to a $1,400/month apartment in February, I currently pay $1,000 rent. Can I swing it?',
 ];
 
-type Msg =
-  | { id: number; role: 'user'; text: string }
-  | { id: number; role: 'bot'; kind: 'text'; text: string; verification?: CalculationResponse['verification']; note?: string; replies?: string[]; route?: Route }
-  | { id: number; role: 'bot'; kind: 'understood'; extraction: ExtractionResponse }
-  | { id: number; role: 'bot'; kind: 'answer'; response: CalculationResponse }
-  | { id: number; role: 'bot'; kind: 'typing' };
 type NewMsg = Msg extends infer M ? M extends { id: number } ? Omit<M, 'id'> : never : never;
 
 const context = () => {
@@ -56,7 +51,7 @@ function changes(before: ExtractionResponse, after: ExtractionResponse): string[
     .slice(0, 4).map(a => `${label(a.variable)}: ${show(a)}`);
 }
 
-export default function ChatApp() {
+export default function ChatApp({ resumeId }: { resumeId?: string }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -103,6 +98,35 @@ export default function ChatApp() {
   useEffect(() => { if (msgs.length) setInstructionsSeen(true); }, [msgs.length]);
   // Read the saved profile after mount (browser storage isn't available during server rendering).
   useEffect(() => { const p = loadProfile(); profileRef.current = p; setProfile(p); }, []);
+  // History: every chat is saved in this browser as it goes, and /?chat=<id> reopens one to continue it.
+  const chatId = useRef(newChatId());
+  const startedAt = useRef(0);
+  const justRestored = useRef(false);   // skip re-saving a chat that was only reopened, not changed
+  useEffect(() => {
+    if (!resumeId) return;
+    const r = getChat(resumeId);
+    if (!r) return;
+    const restored = forResume(r);
+    chatId.current = r.id; startedAt.current = r.startedAt; justRestored.current = true;
+    idRef.current = Math.max(0, ...restored.map(m => m.id)); originalRef.current = r.original;
+    current.current = r.state.current; plainQuestion.current = r.state.plainQuestion; pendingUnknowns.current = r.state.pendingUnknowns;
+    paramsRef.current = r.state.params; setParams(r.state.params);
+    if (r.extraction) {
+      exRef.current = r.extraction; setEx(r.extraction);
+      const answer = [...restored].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
+      if (answer) setReviewedMath({ snapshot: r.extraction, response: answer.response });
+    }
+    setMsgs(restored); setStage(restored.some(m => 'kind' in m && m.kind === 'answer') ? 3 : r.extraction ? 1 : 0);
+  }, [resumeId]);
+  useEffect(() => {
+    if (!msgs.length) return;
+    if (justRestored.current) { justRestored.current = false; return; }
+    if (!startedAt.current) startedAt.current = Date.now();
+    const state = { current: current.current, plainQuestion: plainQuestion.current, pendingUnknowns: pendingUnknowns.current, params: paramsRef.current };
+    const record = toRecord(chatId.current, msgs, exRef.current, originalRef.current, startedAt.current, state);
+    if (record) saveChat(record);
+  }, [msgs, ex, params]);
+
   // Profile figures travel with every extract/correct request; the backend uses them as evidence.
   const withProfile = () => { const fp = financialProfile(profileRef.current); return fp ? { financial_profile: fp } : {}; };
 
@@ -305,6 +329,8 @@ export default function ChatApp() {
     if (timer.current) clearTimeout(timer.current);
     calcSeq.current++; idRef.current = 0; pendingUnknowns.current = null; exRef.current = null; originalRef.current = ''; plainQuestion.current = null; recoveryUsed.current = false; paramsRef.current = {}; asked.current = {}; skipped.current = new Set(); current.current = null; retry.current = null;
     setMsgs([]); setEx(null); setSheetOpen(false); setReviewedMath(null); setParams({}); setStage(0); setText(''); setBusy(false);
+    chatId.current = newChatId(); startedAt.current = 0; justRestored.current = false;
+    if (window.location.search) window.history.replaceState(null, '', '/');
   };
   const pick = (value: string) => { setText(value); input.current?.focus(); };
   const lastAnswer = [...msgs].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
@@ -331,7 +357,7 @@ export default function ChatApp() {
     <header className={s.header}>
       <button type="button" className={s.brand} onClick={reset} aria-label="Start over"><Coin size={30} className={s.brandCoin} />Penny<span className={s.brandScript}>scope</span></button>
       <Status stage={stage} active={!empty} />
-      <div className={s.headerRight}><button type="button" className={`${s.sheetToggle} ${empty && !instructionsSeen && !sheetOpen ? s.instructionsPrompt : ''}`} onClick={() => { if (empty) setInstructionsSeen(true); setSheetOpen(o => !o); }} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
+      <div className={s.headerRight}><button type="button" className={`${s.sheetToggle} ${empty && !instructionsSeen && !sheetOpen ? s.instructionsPrompt : ''}`} onClick={() => { if (empty) setInstructionsSeen(true); setSheetOpen(o => !o); }} aria-expanded={sheetOpen} aria-controls="working-sheet">{empty ? 'How it works' : 'Working sheet'}</button><a href="/history" className={s.historyLink} aria-label="History" title="Your past chats"><svg className={s.historyIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6" /><path d="M3.5 4.5V8H7" /><path d="M12 7.5V12l3 2" /></svg><span className={s.historyLabel}>History</span></a><button type="button" className={s.newChat} onClick={reset}>New chat</button>{profileButton}</div>
     </header>
     <div className={s.body}>
       <main ref={thread} className={s.thread} aria-live="polite">
