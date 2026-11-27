@@ -104,10 +104,25 @@ export function lastHeadline(r: ChatRecord): string | undefined {
   return res && (res.status === 'ready' || res.status === 'conditional') ? res.answer.headline : undefined;
 }
 
-// A saved chat, ready to continue. Quick replies stay only on the last message, and only while its
-// question is still open; anything else (e.g. "Try again" for a request that is gone) is dropped.
+// Messages the user sent at the end of a chat that never got a reply (they left while the app was
+// still answering). The reply is gone, so these are taken out of the thread and offered again.
+function trailingUnanswered(messages: Msg[]): number {
+  let i = messages.length;
+  while (i > 0 && messages[i - 1].role === 'user') i--;
+  return i;
+}
+export function unanswered(r: ChatRecord): string | null {
+  const cut = trailingUnanswered(r.messages);
+  const last = r.messages.at(-1);
+  return cut < r.messages.length && last?.role === 'user' ? last.text : null;
+}
+
+// A saved chat, ready to continue. Unanswered messages at the end are left out (see above). Quick replies
+// stay only on the last message, and only while its question is still open; anything else (e.g. "Try
+// again" for a request that is gone) is dropped.
 export function forResume(r: ChatRecord): Msg[] {
-  const last = r.messages.at(-1)?.id;
-  return r.messages.map(m => m.role === 'bot' && m.kind === 'text' && m.replies && !(r.state.current && m.id === last)
+  const kept = r.messages.slice(0, trailingUnanswered(r.messages));
+  const last = kept.at(-1)?.id;
+  return kept.map(m => m.role === 'bot' && m.kind === 'text' && m.replies && !(r.state.current && m.id === last)
     ? (({ replies: _r, ...rest }) => { void _r; return rest; })(m) : m);
 }

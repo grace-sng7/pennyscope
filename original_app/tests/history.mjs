@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { toRecord, upsert, forResume, lastHeadline, loadHistory, saveChat, deleteChat, getChat, clearHistory, MAX_CHATS } from '../lib/history.ts';
+import { toRecord, upsert, forResume, unanswered, lastHeadline, loadHistory, saveChat, deleteChat, getChat, clearHistory, MAX_CHATS } from '../lib/history.ts';
 
 // A tiny in-memory localStorage.
 const store = new Map();
@@ -44,7 +44,15 @@ saveChat(waiting);
 assert.deepEqual(getChat('a').state.skipped, ['monthly_income'], 'and survive a round trip');
 clearHistory();
 assert.deepEqual(forResume(waiting)[1].replies, ['Not sure, skip this']);
-assert.equal(forResume({ ...waiting, messages: [...waiting.messages, { id: 9, role: 'user', text: 'hi' }] })[1].replies, undefined, 'not on an earlier message');
+assert.equal(forResume({ ...waiting, messages: [...waiting.messages, { id: 9, role: 'bot', kind: 'text', text: 'later' }] })[1].replies, undefined, 'not on an earlier message');
+// Left before the reply arrived: the unanswered message is taken out of the thread and offered again.
+assert.equal(unanswered(waiting), null);
+const interrupted = { ...waiting, messages: [...waiting.messages, { id: 9, role: 'user', text: 'about 2400' }] };
+assert.equal(unanswered(interrupted), 'about 2400');
+assert.deepEqual(forResume(interrupted).map(m => m.id), [1, 2]);
+assert.deepEqual(forResume(interrupted)[1].replies, ['Not sure, skip this'], 'the open question keeps its button');
+const firstOnly = { ...waiting, messages: [{ id: 1, role: 'user', text: 'Can I afford a car?' }] };
+assert.deepEqual([forResume(firstOnly), unanswered(firstOnly)], [[], 'Can I afford a car?'], 'a first question with no reply at all'); 
 
 // Headline of the latest ready answer.
 assert.equal(lastHeadline(r), undefined);

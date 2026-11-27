@@ -12,7 +12,7 @@ import { calculationService as mockCalculation, extractionService as mockExtract
 import { applyLocalAnswer, parseSimpleAnswer } from '../lib/local-answer';
 import { label, money } from '../lib/workspace-model';
 import { readRoute, type Route } from '../lib/reasoning';
-import { forResume, getChat, newChatId, saveChat, toRecord, type ChatRecord, type Msg } from '../lib/history';
+import { forResume, getChat, newChatId, saveChat, toRecord, unanswered, type ChatRecord, type Msg } from '../lib/history';
 import { AnswerCard, AnswerSupporting, QuestionText, QuickReplies, RouteBadge, Status, Typing, Understood, WorkingSheet, show } from './chat-parts';
 import { Coin } from './coin';
 import { ProfilePanel } from './profile-panel';
@@ -118,16 +118,27 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
   const justRestored = useRef(false);   // skip re-saving a chat that was only reopened, not changed
   const [restored, setRestored] = useState(false);        // this chat came from History (extra safety net below)
   const [restoreNotice, setRestoreNotice] = useState('');
+  // While a saved chat is being read (browser storage is only available after the page loads), show a
+  // short "Opening your chat" line instead of flashing the empty home screen.
+  const [resuming, setResuming] = useState(!!resumeId);
   useEffect(() => {
     if (!resumeId) return;
     const r = getChat(resumeId);
     if (!r || !restorable(r)) {
       setRestoreNotice(r ? 'I couldn’t reopen that chat because it was saved by an older version of Pennyscope. It’s still in History if you want to delete it. You can start a new one here.' : 'That chat isn’t in this browser’s history any more. You can start a new one here.');
       window.history.replaceState(null, '', '/');
+      setResuming(false);
       return;
     }
     const resumed = forResume(r);
-    chatId.current = r.id; startedAt.current = r.startedAt; justRestored.current = true;
+    // Left before the reply arrived: that reply is gone, so the message goes back in the box to send again.
+    const draft = unanswered(r);
+    if (draft !== null) {
+      const button = [SKIP, RETRY, ESTIMATE].includes(draft);
+      if (!button) setText(draft);
+      setRestoreNotice(button ? 'You left before I finished answering, so I didn’t get to reply. Carry on from here.' : 'You left before I finished answering, so your last message is back in the box. Press Send to ask again.');
+    }
+    chatId.current = r.id; startedAt.current = r.startedAt; justRestored.current = resumed.length > 0;
     idRef.current = Math.max(0, ...resumed.map(m => m.id)); originalRef.current = r.original;
     current.current = r.state.current; plainQuestion.current = r.state.plainQuestion; pendingUnknowns.current = r.state.pendingUnknowns;
     skipped.current = new Set(r.state.skipped); asked.current = { ...r.state.asked };
@@ -136,8 +147,10 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
       exRef.current = r.extraction; setEx(r.extraction);
       const answer = [...resumed].reverse().find(m => 'kind' in m && m.kind === 'answer') as Extract<Msg, { kind: 'answer' }> | undefined;
       if (answer) setReviewedMath({ snapshot: r.extraction, response: answer.response });
+      // Same as a live chat: the sheet opens on wide screens, and stays behind its toggle on phones.
+      if (window.matchMedia?.('(min-width: 901px)').matches) setSheetOpen(true);
     }
-    setMsgs(resumed); setRestored(true); setStage(resumed.some(m => 'kind' in m && m.kind === 'answer') ? 3 : r.extraction ? 1 : 0);
+    setResuming(false); setMsgs(resumed); setRestored(true); setStage(resumed.some(m => 'kind' in m && m.kind === 'answer') ? 3 : r.extraction ? 1 : 0);
   }, [resumeId]);
   // Saving rewrites the whole history, so it waits until the chat has been quiet for a moment, and is
   // flushed straight away when the page is hidden or closed, or a new chat starts.
@@ -282,7 +295,7 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
   async function send(raw: string) {
     const message = raw.trim();
     if (!message || busy) return;
-    recoveryUsed.current = false; latestMessage.current = message;
+    recoveryUsed.current = false; latestMessage.current = message; setRestoreNotice('');
     setText(''); push({ role: 'user', text: message });
     if (message === RETRY && retry.current) { setBusy(true); typing(); try { await retry.current(); } finally { setBusy(false); } return; }
     setBusy(true); typing();
@@ -369,7 +382,7 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
     if (timer.current) clearTimeout(timer.current);
     calcSeq.current++; idRef.current = 0; pendingUnknowns.current = null; exRef.current = null; originalRef.current = ''; plainQuestion.current = null; recoveryUsed.current = false; paramsRef.current = {}; asked.current = {}; skipped.current = new Set(); current.current = null; retry.current = null;
     setMsgs([]); setEx(null); setSheetOpen(false); setReviewedMath(null); setParams({}); setStage(0); setText(''); setBusy(false);
-    chatId.current = newChatId(); startedAt.current = 0; justRestored.current = false; setRestored(false); setRestoreNotice('');
+    chatId.current = newChatId(); startedAt.current = 0; justRestored.current = false; setRestored(false); setRestoreNotice(''); setResuming(false);
     if (window.location.search) window.history.replaceState(null, '', '/');
   };
   const pick = (value: string) => { setText(value); input.current?.focus(); };
@@ -401,7 +414,8 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
     </header>
     <div className={s.body}>
       <main ref={thread} className={s.thread} aria-live="polite">
-        {empty && <div className={s.welcome}>{restoreNotice && <p className={s.restoreNotice} role="status">{restoreNotice}</p>}<p className={s.kicker}>Can I afford it?</p><h1>What are you thinking about <span className={s.highlight}>buying or doing?</span></h1>
+        {resuming && <p className={s.muted} role="status">Opening your chat…</p>}
+        {empty && !resuming && <div className={s.welcome}>{restoreNotice && <p className={s.restoreNotice} role="status">{restoreNotice}</p>}<p className={s.kicker}>Can I afford it?</p><h1>What are you thinking about <span className={s.highlight}>buying or doing?</span></h1>
           <div className={s.heroAsk}><div className={s.mascot} aria-hidden="true"><span className={s.mascotBubble}>Rough numbers are fine!</span><Coin size={104} className={s.mascotCoin} /></div>{composer}</div>
           <section className={s.exampleSection} aria-labelledby="suggestions-heading"><h2 id="suggestions-heading" className={s.suggestionsHeading}>What you can ask</h2><div className={s.suggestions}>{SUGGESTIONS.map(t => <button key={t} type="button" onClick={() => pick(t)}>{t}</button>)}</div></section></div>}
         {msgs.map(m => m.role === 'user'
@@ -414,6 +428,7 @@ export default function ChatApp({ resumeId }: { resumeId?: string }) {
             {m.kind === 'answer' && <><PresentationBoundary resetKey={m.response} fallback={<PlainResult response={m.response} />}><AnswerCard response={m.response} interactive={m === lastAnswer} params={params} onParam={onParam} /></PresentationBoundary>
               <PresentationBoundary resetKey={m.response} fallback={null}><AnswerSupporting response={m.response} interactive={m === lastAnswer} disabled={busy} onAsk={send} /></PresentationBoundary></>}
           </div></div>)}
+        {!empty && restoreNotice && <p className={s.restoreNotice} role="status">{restoreNotice}</p>}
       </main>
       <div id="working-sheet" className={`${s.sheetWrap} ${sheetOpen ? s.sheetOpen : s.sheetHidden}`}><PresentationBoundary resetKey={ex} fallback={<p className={s.muted} style={{ padding: 16 }}>The working sheet can’t be shown for this chat.</p>}><WorkingSheet intro={empty} extraction={ex} math={reviewedMath?.snapshot === ex ? reviewedMath?.response ?? null : null} profileSummary={profileSummary} onProfile={() => setProfileOpen(true)} /></PresentationBoundary></div>
     </div>
