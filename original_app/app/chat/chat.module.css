@@ -337,3 +337,4 @@
   .headerRight .historyLink:hover { transform: none; box-shadow: var(--press); }
   .historyLabel { display: none; }
 }
+.restoreNotice { margin: 0 0 18px; padding: 10px 14px; font-size: 14px; line-height: 1.5; color: var(--ink-sb); background: var(--note); border: 1.5px solid var(--ink-sb); border-radius: 12px; }

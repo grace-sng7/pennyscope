@@ -36,9 +36,13 @@ assert.equal(resumed[1].text, 'How much do you make?');
 assert.deepEqual(r.messages[1].replies, ['Not sure, skip this'], 'saved record not mutated');
 // ...but kept on the last message while its question is still pending.
 const pending = { targets: ['monthly_income'], question: 'How much do you make?', required: true };
-const waiting = toRecord('a', msgs, null, 'q', 1, { current: pending, plainQuestion: null, pendingUnknowns: null, params: { monthly_contribution: '300' } }, 5);
+const waiting = toRecord('a', msgs, null, 'q', 1, { current: pending, plainQuestion: null, pendingUnknowns: null, params: { monthly_contribution: '300' }, skipped: ['monthly_income'], asked: { monthly_income: 2 } }, 5);
 assert.deepEqual(waiting.state.current, pending);
 assert.deepEqual(waiting.state.params, { monthly_contribution: '300' });
+assert.deepEqual([waiting.state.skipped, waiting.state.asked], [['monthly_income'], { monthly_income: 2 }], 'skipped questions and ask counts are kept');
+saveChat(waiting);
+assert.deepEqual(getChat('a').state.skipped, ['monthly_income'], 'and survive a round trip');
+clearHistory();
 assert.deepEqual(forResume(waiting)[1].replies, ['Not sure, skip this']);
 assert.equal(forResume({ ...waiting, messages: [...waiting.messages, { id: 9, role: 'user', text: 'hi' }] })[1].replies, undefined, 'not on an earlier message');
 
@@ -63,7 +67,10 @@ assert.deepEqual(loadHistory().map(x => x.id), ['ok'], 'malformed entries skippe
 // A record saved without state still loads with an empty one.
 const { state: _s, ...noState } = r; void _s;
 store.set('pennyscope-history-v1', JSON.stringify([noState]));
-assert.deepEqual(loadHistory()[0].state, { current: null, plainQuestion: null, pendingUnknowns: null, params: {} });
+assert.deepEqual(loadHistory()[0].state, { current: null, plainQuestion: null, pendingUnknowns: null, params: {}, skipped: [], asked: {} });
+// An older record without the newer fields gets them filled in.
+store.set('pennyscope-history-v1', JSON.stringify([{ ...r, state: { current: null, plainQuestion: null, pendingUnknowns: null, params: {} } }]));
+assert.deepEqual([loadHistory()[0].state.skipped, loadHistory()[0].state.asked], [[], {}]);
 
 // Out of space: oldest chats are dropped until it fits.
 clearHistory();

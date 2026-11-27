@@ -17,8 +17,10 @@ export interface ChatState {
   plainQuestion: string | null;          // a free-thinking follow-up question being waited on
   pendingUnknowns: string[] | null;      // required facts still unknown
   params: Record<string, string>;        // what-if values the user changed on the answer
+  skipped: string[];                     // questions the user chose to skip, so they aren't asked again
+  asked: Record<string, number>;         // how many times each question was asked (the chat stops after two)
 }
-export const emptyState = (): ChatState => ({ current: null, plainQuestion: null, pendingUnknowns: null, params: {} });
+export const emptyState = (): ChatState => ({ current: null, plainQuestion: null, pendingUnknowns: null, params: {}, skipped: [], asked: {} });
 
 export interface ChatRecord {
   id: string;
